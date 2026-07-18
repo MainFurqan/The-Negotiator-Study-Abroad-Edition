@@ -89,7 +89,7 @@ Three tiers, all supported by the same code path:
 - Scaffold: `backend/` (FastAPI hello + SQLite models), `frontend/` (Next.js starter), `config/uk-llb.json` (empty schema).
 - **Exit criteria:** repo pushed; FastAPI runs; Next.js runs; config schema agreed.
 
-### Phase 1 — Data Foundation & Vertical Config (Day 1 afternoon)
+### Phase 1 — Data Foundation & Vertical Config
 - Fill `config/uk-llb.json` with **real benchmarks** (cite sources in the file):
   - Deposits: QMUL £2,000 · Manchester £6,000 · UWE Bristol £8,500 · Hull £10,000 (from the brief; verify on university pages and add 3–4 more).
   - UKVI maintenance funds requirement (verify current figures on gov.uk), IELTS fee in PKR, visa fee, typical LLB tuition range.
@@ -99,41 +99,41 @@ Three tiers, all supported by the same code path:
 - Call-list script: pull education consultants for Lahore/Faisalabad/Islamabad from Google Places (or OSM) into `data/call_list.json` — proves real-world discoverability; the demo dials our numbers but the list is real.
 - **Exit criteria:** config validates against a JSON schema; call list generated; committed & pushed.
 
-### Phase 2 — The Estimator (Day 2)
+### Phase 2 — The Estimator
 - **Voice intake agent** (ElevenLabs): asks what a professional counsellor asks — last qualification, grades, English test status, target degree/country, budget ceiling, sponsor + bank statement capacity, intake season. Tool call `save_profile` posts structured JSON to FastAPI. Iterate in TEXT mode.
 - **Document intake:** upload transcript/IELTS TRF/bank statement (or an existing consultancy quote) → OpenAI vision → **same** `StudentProfile` schema. One document type is required; transcripts + IELTS = two, better.
 - **Confirmation step (judged requirement):** dashboard shows the merged profile; student explicitly confirms before any call. Profile is then **frozen** and injected verbatim into every outbound call prompt.
 - **Exit criteria:** both paths produce identical schema; confirmation UI works; one text-mode golden intake transcript saved.
 
-### Phase 3 — The Counterparty Market (Day 3)
+### Phase 3 — The Counterparty Market
 - Build the 3 persona agents in ElevenLabs, each parameterized by a persona block in the config (partner universities, commission bias, fee-hiding behavior, evasion tactics).
 - Write **human role-play cue cards** for the same 3 personas (for Tier B Twilio calls) — one page each: opening line, what they push, what they hide, when they concede.
 - Persona quality bar: the Fee-Hider must *actually* conceal fees until pressed twice; the Stonewaller must *actually* refuse numbers until the agent applies the "my family needs an itemised budget before any visit" move. If personas fold instantly, the negotiation looks scripted — the #1 "weak submission" trap.
 - **Exit criteria:** 3 text-mode agent-vs-persona conversations where extraction is *hard but succeeds*.
 
-### Phase 4 — The Caller (Day 4)
+### Phase 4 — The Caller
 - Outbound orchestration: FastAPI endpoint triggers ElevenLabs outbound call (Twilio integration) per call-list entry; conversation state tied to `call_id`.
 - Caller agent prompt: identical profile description every time; friction handling (interruptions, "visit our office", vague answers); **mid-call tool** `log_quote` writes each fee item to SQLite as it's extracted → the dashboard quote board fills **live during the call** (huge demo moment).
 - Structured outcome enforcement: every call ends via `end_call_outcome` tool — `quote | callback_commitment | documented_decline`. Never "around 50 lakh".
 - AI disclosure behavior: discloses on request, gracefully, without losing the quote (scripted recovery line — we design and demo this explicitly, it's a judged bullet).
 - **Exit criteria:** one real Twilio call to your phone completes end-to-end with a live-logged itemised quote.
 
-### Phase 5 — The Closer (Day 5)
+### Phase 5 — The Closer
 - Negotiation tools: `get_leverage(call_id)` returns the best competing itemised offer from SQLite; agent uses it truthfully ("Another firm offers the same LLB pathway with a £2,000-deposit university and no service fee — can you match it?").
 - **Honesty guardrails (judged):** system prompt hard constraints — never invent grades/IELTS/funds; **leverage may only come from the `get_leverage` tool**, never fabricated; `red_flag_check` tool validates quoted deposits against published benchmarks and the agent *says so on the call* ("Manchester's published deposit for Pakistani applicants is £6,000 — why is your figure £8,000?").
 - Report generator: ranked comparison, itemised GBP + PKR, red flags annotated, recommended pathway in plain language, every claim linked to a transcript timestamp + recording.
 - **Exit criteria:** one call where price/terms measurably change due to tool-fetched leverage (e.g., service fee waived or lower-deposit university surfaced) — recorded.
 
-### Phase 6 — Dashboard & Report Polish (Day 6)
+### Phase 6 — Dashboard & Report Polish
 - Live quote board (rows appear mid-call), comparison table, ranked report page, audio player per call, transcript viewer with highlighted evidence, "swap vertical" config toggle stub.
 - Keep it clean, not fancy — the brief explicitly warns against hiding non-comparable quotes behind a polished dashboard. Comparability IS the feature.
 
-### Phase 7 — Golden Calls, Evals & Hardening (Day 7)
+### Phase 7 — Golden Calls, Evals & Hardening
 - Record the full golden set: intake (voice), 3 style calls (Twilio-to-you), 1 negotiation with price movement, 1 "am I talking to a robot?" moment, 1 stonewall → documented-decline outcome.
 - Simple evals (scriptable, cheap): does the caller extract all 8 fee items? does `red_flag_check` fire on a padded deposit? does the closer refuse to fabricate when persona baits it ("your other offer is fake, right?")?
 - Failure-mode drills: mid-call hangup, persona giving a range instead of numbers, barge-in.
 
-### Phase 8 — Demo & Submission (Day 8 + buffer)
+### Phase 8 — Demo & Submission
 - **Demo video structure (3–5 min):** Ali's problem (15s) → intake both paths + confirmation (45s) → live call montage vs 3 styles with the quote board filling (90s) → THE negotiation moment, price moves on screen (60s) → ranked report, GBP/PKR, red flags, evidence links (45s) → config-swap slide + honesty/disclosure slide (20s).
 - README: architecture diagram, the 4 conversation-requirement answers (disclosure, friction, honesty line, structured endings) answered explicitly — they're judged bullets, put them under literal headings.
 - Pre-recorded full run as fallback; live demo only if the venue/network allows.
