@@ -27,4 +27,9 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
 - Phase 1 (vertical config + schemas + call list): DONE — benchmarks verified 2026-07-19 with sources in config;
   schemas in `schemas/` (+ examples); `python -X utf8 scripts/validate_config.py` must stay green;
   `data/call_list.json` built by `scripts/build_call_list.py` (OSM Overpass).
-- Next: Phase 2 (Estimator — voice intake agent + doc parsing + confirmation UI).
+- Phase 2 (Estimator): code DONE — intake backend (`/tools/save_profile`, doc upload → `backend/app/docparse.py`,
+  confirm/freeze API), confirmation dashboard (`frontend/app/page.tsx`), agent assets in `agents/estimator/`
+  (prompt rendered from config via `scripts/render_agent_prompt.py`). Verified end-to-end locally.
+  MANUAL remaining: put OPENAI_API_KEY in .env; create the agent in ElevenLabs per `agents/estimator/README.md`;
+  text-mode golden transcript → `data/transcripts/intake-golden.md`.
+- Next: Phase 3 (counterparty persona agents + role-play cue cards).
