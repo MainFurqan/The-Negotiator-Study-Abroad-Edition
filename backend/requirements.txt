@@ -6,3 +6,4 @@ httpx
 openai
 pdfplumber
 jsonschema
+python-multipart

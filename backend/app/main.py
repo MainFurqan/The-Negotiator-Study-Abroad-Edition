@@ -7,8 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_vertical
 from .db import init_db
+from .intake import router as intake_router
 
 app = FastAPI(title="The Negotiator — backend")
+app.include_router(intake_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,5 +31,5 @@ def health() -> dict:
     return {"status": "ok", "vertical": v["vertical_id"], "display_name": v["display_name"]}
 
 
-# Phase 2+: routers for agent tool webhooks land here
-# (save_profile, log_quote, get_leverage, red_flag_check, end_call_outcome)
+# Phase 4+: remaining agent tool webhooks land here
+# (log_quote, get_leverage, red_flag_check, end_call_outcome)
