@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "negotiator/vertical-config.schema.json",
+  "title": "VerticalConfig",
+  "description": "Shape every config/<vertical>.json must satisfy. This is the 'vertical as config, not code' contract: any file passing this schema retargets the whole system. Benchmarks allow extra currency-specific keys because each market has its own cost structure.",
+  "type": "object",
+  "required": [
+    "vertical_id",
+    "display_name",
+    "student_context",
+    "currency",
+    "benchmarks",
+    "quote_items",
+    "red_flag_rules",
+    "negotiation",
+    "ai_disclosure",
+    "personas",
+    "call_list"
+  ],
+  "properties": {
+    "vertical_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "display_name": { "type": "string" },
+    "student_context": {
+      "type": "object",
+      "required": ["origin_country", "destination_country", "course", "intake", "home_city"],
+      "properties": {
+        "origin_country": { "type": "string" },
+        "destination_country": { "type": "string" },
+        "course": { "type": "string" },
+        "intake": { "type": "string" },
+        "home_city": { "type": "string" }
+      }
+    },
+    "currency": {
+      "type": "object",
+      "required": ["quote_currency", "report_currency_secondary"],
+      "properties": {
+        "quote_currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "report_currency_secondary": { "type": "string", "minLength": 3, "maxLength": 3 }
+      }
+    },
+    "benchmarks": {
+      "type": "object",
+      "required": ["published_deposits"],
+      "properties": {
+        "published_deposits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["university"],
+            "properties": {
+              "university": { "type": "string" },
+              "note": { "type": "string" },
+              "source": { "type": "string", "format": "uri" }
+            },
+            "patternProperties": { "^deposit_[a-z]{3}$": { "type": "number", "minimum": 0 } }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "quote_items": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9_]+$" }
+    },
+    "red_flag_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "check", "severity", "agent_line"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "description": { "type": "string" },
+          "check": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+          "agent_line": { "type": "string" }
+        }
+      }
+    },
+    "negotiation": {
+      "type": "object",
+      "required": ["levers", "honesty_constraints", "target_outcomes"],
+      "properties": {
+        "levers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "line"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+              "line": { "type": "string" }
+            }
+          }
+        },
+        "honesty_constraints": { "type": "array", "items": { "type": "string" } },
+        "target_outcomes": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["quote", "callback_commitment", "documented_decline"] },
+          "minItems": 3
+        }
+      }
+    },
+    "ai_disclosure": {
+      "type": "object",
+      "required": ["policy", "line"],
+      "properties": {
+        "policy": { "type": "string", "enum": ["disclose_when_asked", "disclose_upfront"] },
+        "line": { "type": "string" }
+      }
+    },
+    "personas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "style", "resistance", "concession_rule"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "name": { "type": "string" },
+          "style": { "type": "string" },
+          "resistance": { "type": "string" },
+          "concession_rule": { "type": "string" }
+        }
+      }
+    },
+    "call_list": {
+      "type": "object",
+      "required": ["search_query", "target_count"],
+      "properties": {
+        "search_query": { "type": "string" },
+        "cities": { "type": "array", "items": { "type": "string" } },
+        "target_count": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "call_id": 1,
+  "consultancy_name": "SkyBridge Consultants",
+  "persona_id": "commission_pusher",
+  "university": "University of Hull",
+  "currency": "GBP",
+  "items": [
+    { "item": "service_fee", "amount": 200, "note": "Opened at £350", "is_revised": true, "revised_from": 350, "transcript_ref": "04:12" },
+    { "item": "university_application_fee", "amount": 0, "note": "Free via their partner portal", "is_revised": false, "revised_from": null, "transcript_ref": "02:40" },
+    { "item": "deposit", "amount": 10000, "note": "Hull requirement for Pakistani applicants", "is_revised": false, "revised_from": null, "transcript_ref": "03:05" },
+    { "item": "visa_processing_fee", "amount": 558, "note": "Passed through at cost", "is_revised": false, "revised_from": null, "transcript_ref": "05:20" },
+    { "item": "document_attestation", "amount": 45, "note": "Revealed only when asked per-item", "is_revised": false, "revised_from": null, "transcript_ref": "06:01" }
+  ],
+  "tuition_per_year": 18100,
+  "living_costs_advised": 10539,
+  "bank_statement_required_pkr": 11500000,
+  "conditions": ["IELTS 6.0 minimum accepted", "deposit within 14 days of offer"],
+  "red_flag_ids": ["deposit_padding"],
+  "outcome": "quote",
+  "outcome_detail": null,
+  "quoted_at": "2026-07-19T15:30:00Z"
+}

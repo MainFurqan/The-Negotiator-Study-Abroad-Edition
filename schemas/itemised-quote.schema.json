@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "negotiator/itemised-quote.schema.json",
+  "title": "ItemisedQuote",
+  "description": "One consultancy's complete structured quote, assembled from mid-call log_quote tool calls plus the end_call_outcome. `items` holds only fees the CONSULTANCY charges or collects; university/UKVI figures (tuition, living costs, bank statement) are separate top-level fields so quotes stay comparable. Item names must be members of the active vertical config's `quote_items` — enforced by scripts/validate_config.py, not hardcoded here (config, not code).",
+  "type": "object",
+  "required": ["call_id", "consultancy_name", "currency", "items", "outcome"],
+  "additionalProperties": false,
+  "properties": {
+    "call_id": { "type": "integer" },
+    "consultancy_name": { "type": "string", "minLength": 1 },
+    "persona_id": { "type": ["string", "null"], "description": "Which counterparty persona (Tier A/B); null for a real consultancy" },
+    "university": { "type": ["string", "null"], "description": "University this quote routes the student to" },
+    "currency": { "type": "string", "description": "Matches config currency.quote_currency" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "amount"],
+        "additionalProperties": false,
+        "properties": {
+          "item": { "type": "string", "description": "Member of config quote_items (cross-checked by validator)" },
+          "amount": { "type": "number", "minimum": 0 },
+          "note": { "type": ["string", "null"] },
+          "is_revised": { "type": "boolean", "default": false, "description": "True when this price moved during negotiation — the demo moment" },
+          "revised_from": { "type": ["number", "null"], "description": "Original amount before the negotiation moved it" },
+          "transcript_ref": { "type": ["string", "null"], "description": "Timestamp or utterance id evidencing this figure" }
+        }
+      }
+    },
+    "tuition_per_year": { "type": ["number", "null"], "description": "University tuition quoted, per year, in `currency`" },
+    "living_costs_advised": { "type": ["number", "null"], "description": "Living costs the consultancy advised, in `currency`" },
+    "bank_statement_required_pkr": { "type": ["number", "null"], "description": "Funds the consultancy says must be shown, in PKR" },
+    "conditions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Strings like 'IELTS 6.5 required', 'deposit within 2 weeks of offer'"
+    },
+    "red_flag_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Ids of config red_flag_rules that fired on this quote"
+    },
+    "outcome": { "type": "string", "enum": ["quote", "callback_commitment", "documented_decline"] },
+    "outcome_detail": { "type": ["string", "null"], "description": "e.g. callback: 'Tuesday 3pm, ask for Maryam'; decline: reason given" },
+    "quoted_at": { "type": ["string", "null"], "description": "ISO timestamp" }
+  }
+}

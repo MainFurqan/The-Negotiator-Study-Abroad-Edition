@@ -23,4 +23,8 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
 - Windows: use `python -X utf8` for scripts printing non-ASCII.
 
 ## Current status
-- Phase 0 (foundations/scaffolding): DONE. Next: Phase 1 (vertical config + schemas + call-list script).
+- Phase 0 (foundations/scaffolding): DONE.
+- Phase 1 (vertical config + schemas + call list): DONE — benchmarks verified 2026-07-19 with sources in config;
+  schemas in `schemas/` (+ examples); `python -X utf8 scripts/validate_config.py` must stay green;
+  `data/call_list.json` built by `scripts/build_call_list.py` (OSM Overpass).
+- Next: Phase 2 (Estimator — voice intake agent + doc parsing + confirmation UI).

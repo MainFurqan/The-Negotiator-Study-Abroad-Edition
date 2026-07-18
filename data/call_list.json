@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-07-18T21:45:45Z",
+  "source": "OpenStreetMap Overpass API",
+  "search": "study abroad consultants UK visa",
+  "cities": [
+    "Lahore",
+    "Faisalabad",
+    "Islamabad"
+  ],
+  "count": 4,
+  "entries": [
+    {
+      "name": "BlueMax Visa Consultant",
+      "city": "Lahore",
+      "phone": "03111101192",
+      "address": "F-4, Model Town Link Road",
+      "website": null,
+      "lat": 31.4652502,
+      "lon": 74.3151075,
+      "source": "osm-overpass",
+      "osm_id": "node/10916872705",
+      "demo_override_phone": null
+    },
+    {
+      "name": "VisaTribe",
+      "city": "Islamabad",
+      "phone": "0516129427",
+      "address": "V-1, 4th Floor, The Interlace, I-8 Markaz",
+      "website": null,
+      "lat": 33.6672843,
+      "lon": 73.0761991,
+      "source": "osm-overpass",
+      "osm_id": "node/12045293820",
+      "demo_override_phone": null
+    },
+    {
+      "name": "Visatronix Islamabad",
+      "city": "Islamabad",
+      "phone": null,
+      "address": "Khayaban-e-Suhrwardy",
+      "website": "http://www.intiana.com/",
+      "lat": 33.7045364,
+      "lon": 73.0831821,
+      "source": "osm-overpass",
+      "osm_id": "node/4956837603",
+      "demo_override_phone": null
+    },
+    {
+      "name": "Flair Travel Management Visa Express & Translations",
+      "city": "Islamabad",
+      "phone": null,
+      "address": "School Road",
+      "website": null,
+      "lat": 33.7297865,
+      "lon": 73.076097,
+      "source": "osm-overpass",
+      "osm_id": "node/4957032808",
+      "demo_override_phone": null
+    }
+  ]
+}

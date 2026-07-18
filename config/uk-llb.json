@@ -11,26 +11,81 @@
   "currency": {
     "quote_currency": "GBP",
     "report_currency_secondary": "PKR",
-    "gbp_to_pkr_rate": 355.0,
-    "rate_note": "Update before demo; hardcoded fallback if FX API unavailable"
+    "gbp_to_pkr_rate": 374.0,
+    "rate_note": "Interbank rate 2026-07-18 (exchangerates.org.uk). Update before demo; hardcoded fallback if FX API unavailable"
   },
   "benchmarks": {
+    "_sources_note": "All figures verified against official pages on 2026-07-19. Where a university sets country-specific deposits, the figure below is the one for Pakistani-domiciled applicants.",
     "published_deposits": [
-      { "university": "Queen Mary University of London", "deposit_gbp": 2000 },
-      { "university": "University of Manchester", "deposit_gbp": 6000 },
-      { "university": "UWE Bristol", "deposit_gbp": 8500 },
-      { "university": "University of Hull", "deposit_gbp": 10000 }
+      {
+        "university": "Queen Mary University of London",
+        "deposit_gbp": 2000,
+        "note": "All overseas applicants needing a Student visa, payable before CAS",
+        "source": "https://www.qmul.ac.uk/international-students/tuitionfees/deposits/"
+      },
+      {
+        "university": "University of Manchester",
+        "deposit_gbp": 6000,
+        "note": "Higher deposit specifically for applicants domiciled in Pakistan, Bangladesh and Ghana (standard is £1,000)",
+        "source": "https://www.manchester.ac.uk/study/masters/fees-and-funding/international-student-fees/tuition-fee-deposits/"
+      },
+      {
+        "university": "UWE Bristol",
+        "deposit_gbp": 8500,
+        "note": "Pre-registration payment requirement (from hackathon brief; UWE varies by course)",
+        "source": "https://www.uwe.ac.uk/courses/fees/paying-your-fees/international-student-payment"
+      },
+      {
+        "university": "University of Hull",
+        "deposit_gbp": 10000,
+        "note": "Applicants from Pakistan, Bangladesh, Ghana and Nigeria (standard is £4,000)",
+        "source": "https://www.hull.ac.uk/study/international-students/how-to-apply/tuition-fee-deposits"
+      },
+      {
+        "university": "University of Leicester",
+        "deposit_gbp": 8000,
+        "note": "Applicants from Pakistan, payable before CAS issuance",
+        "source": "https://le.ac.uk/study/postgraduates/fees-funding/how-to-pay/deposit"
+      },
+      {
+        "university": "Northumbria University",
+        "deposit_gbp": 5500,
+        "note": "Minimum tuition fee deposit, all international applicants, 2026/27",
+        "source": "https://www.northumbria.ac.uk/study-at-northumbria/fees-funding/international-fees-funding/international-money-matters/"
+      },
+      {
+        "university": "Coventry University",
+        "deposit_gbp": 8000,
+        "note": "Minimum payment before enrolment; Pakistani applicants may be asked for full first-year fees",
+        "source": "https://www.coventry.ac.uk/international-students-hub/fees-and-funding/how-to-pay/"
+      }
     ],
     "ukvi_maintenance": {
-      "outside_london_gbp_per_month": 1136,
-      "london_gbp_per_month": 1483,
-      "months_required": 9
+      "outside_london_gbp_per_month": 1171,
+      "london_gbp_per_month": 1529,
+      "months_required": 9,
+      "note": "28-day held-funds rule applies; closing balance within 31 days of application",
+      "source": "https://www.gov.uk/student-visa/money",
+      "verified": "2026-07-19"
     },
-    "typical_tuition_gbp_range": [14000, 25000],
+    "visa_fee_gbp": 558,
+    "visa_fee_note": "Student visa applied for from outside the UK; rose from £524 on 8 April 2026",
+    "visa_fee_source": "https://www.gov.uk/student-visa",
+    "ihs_gbp_per_year": 776,
+    "ihs_note": "Immigration Health Surcharge, student rate per year of visa (unchanged at April 2026)",
+    "ihs_source": "https://www.gov.uk/healthcare-immigration-application/how-much-pay",
+    "ielts_fee_pkr": {
+      "academic_computer": 71920,
+      "ukvi": 72000,
+      "note": "Lahore pricing 2026; Karachi ~PKR 600 cheaper",
+      "source": "https://ielts.idp.com/pakistan/news-ielts-test-fee",
+      "verified": "2026-07-19"
+    },
+    "typical_tuition_gbp_range": [15000, 28500],
+    "tuition_note": "LLB international 2026/27 entry: Hull ~£18,100, QMUL £25,150+, Manchester £28,400; post-92 universities from ~£15,000",
     "service_fee_market_range_gbp": [0, 500],
     "market_floor_total_gbp": 300,
-    "ihs_gbp_per_year": 776,
-    "visa_fee_gbp": 490
+    "market_floor_note": "Estimate from market knowledge, not a published figure: consultancy charging under £300 total is likely recovering costs via hidden fees or commission-only placements"
   },
   "quote_items": [
     "service_fee",
@@ -126,8 +181,9 @@
     }
   ],
   "call_list": {
-    "search_query": "study abroad consultants UK visa Lahore",
+    "search_query": "study abroad consultants UK visa",
+    "cities": ["Lahore", "Faisalabad", "Islamabad"],
     "target_count": 5,
-    "note": "Phase 1 script fills data/call_list.json from Google Places or OSM"
+    "note": "scripts/build_call_list.py fills data/call_list.json from OSM Overpass (free, keyless); the demo dials our verified number but the list is real"
   }
 }

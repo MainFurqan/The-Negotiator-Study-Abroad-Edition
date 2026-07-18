@@ -1,0 +1,36 @@
+{
+  "profile_id": null,
+  "full_name": "Ali Hassan",
+  "home_city": "Lahore",
+  "last_qualification": {
+    "level": "intermediate",
+    "grades": "FSc pre-medical 82% (1023/1200)",
+    "year_completed": 2025,
+    "institution": "Government College University, Lahore"
+  },
+  "english_test": {
+    "status": "taken",
+    "test_type": "ielts_academic",
+    "overall_score": 6.5,
+    "test_date": "2026-05-14"
+  },
+  "target": {
+    "country": "United Kingdom",
+    "course": "LLB (Bachelor of Laws)",
+    "intake": "September 2026",
+    "preferred_universities": ["Queen Mary University of London", "University of Manchester"]
+  },
+  "budget": {
+    "ceiling_per_year": 20000,
+    "currency": "GBP",
+    "sponsor": "father (textile business owner)",
+    "bank_statement_capacity_pkr": 12000000
+  },
+  "documents_provided": [
+    { "type": "transcript", "filename": "fsc-transcript.pdf", "parsed_ok": true },
+    { "type": "ielts_trf", "filename": "ielts-trf.pdf", "parsed_ok": true }
+  ],
+  "notes": "Prefers London if budget allows; family wants deposit paid in instalments if possible",
+  "confirmed": true,
+  "frozen_at": "2026-07-19T14:00:00Z"
+}

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "negotiator/student-profile.schema.json",
+  "title": "StudentProfile",
+  "description": "The single frozen profile. Both intake paths (Estimator voice interview and document parsing) MUST emit exactly this shape. After the student confirms on the dashboard, `confirmed` flips to true, `frozen_at` is stamped, and the object is injected verbatim into every outbound call prompt — never edited again.",
+  "type": "object",
+  "required": ["full_name", "home_city", "last_qualification", "english_test", "target", "budget", "confirmed"],
+  "additionalProperties": false,
+  "properties": {
+    "profile_id": { "type": ["integer", "null"], "description": "DB row id; null before first save" },
+    "full_name": { "type": "string", "minLength": 1 },
+    "home_city": { "type": "string", "description": "City in Pakistan, e.g. Lahore" },
+    "last_qualification": {
+      "type": "object",
+      "required": ["level", "grades"],
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["matric", "intermediate", "a_levels", "bachelors", "other"],
+          "description": "intermediate covers FA/FSc/ICS/ICom"
+        },
+        "grades": { "type": "string", "description": "As stated or as parsed from transcript, e.g. 'A levels: AAB' or '82% (1023/1200)'" },
+        "year_completed": { "type": ["integer", "null"], "minimum": 2000, "maximum": 2030 },
+        "institution": { "type": ["string", "null"] }
+      }
+    },
+    "english_test": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "type": "string", "enum": ["not_taken", "booked", "taken"] },
+        "test_type": { "type": ["string", "null"], "enum": ["ielts_academic", "ielts_ukvi", "pte_academic", "other", null] },
+        "overall_score": { "type": ["number", "null"], "minimum": 0, "maximum": 9 },
+        "test_date": { "type": ["string", "null"], "description": "ISO date, taken or booked" }
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": ["country", "course", "intake"],
+      "additionalProperties": false,
+      "properties": {
+        "country": { "type": "string" },
+        "course": { "type": "string", "description": "e.g. LLB (Bachelor of Laws)" },
+        "intake": { "type": "string", "description": "e.g. September 2026" },
+        "preferred_universities": { "type": "array", "items": { "type": "string" }, "default": [] }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "required": ["ceiling_per_year", "currency", "sponsor"],
+      "additionalProperties": false,
+      "properties": {
+        "ceiling_per_year": { "type": "number", "exclusiveMinimum": 0, "description": "Max tuition the family can pay per year, in `currency`" },
+        "currency": { "type": "string", "description": "Matches config currency.quote_currency, e.g. GBP" },
+        "sponsor": { "type": "string", "description": "Who funds the study, e.g. 'father (business owner)'" },
+        "bank_statement_capacity_pkr": {
+          "type": ["number", "null"],
+          "description": "How much the sponsor can show held for 28 days, in PKR; null if not yet known"
+        }
+      }
+    },
+    "documents_provided": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "type": "string", "enum": ["transcript", "ielts_trf", "bank_statement", "existing_quote", "other"] },
+          "filename": { "type": ["string", "null"] },
+          "parsed_ok": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "notes": { "type": ["string", "null"], "description": "Free-text nuances from the interview the caller may use verbatim (never invented)" },
+    "confirmed": { "type": "boolean", "description": "True only after explicit dashboard confirmation — the freeze gate" },
+    "frozen_at": { "type": ["string", "null"], "description": "ISO timestamp of confirmation; null while draft" }
+  }
+}
