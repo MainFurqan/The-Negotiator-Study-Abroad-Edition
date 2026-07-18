@@ -1,0 +1,59 @@
+{
+  "_readme": "Webhook tool config for the Estimator agent. In the ElevenLabs dashboard: Agent > Tools > Add tool > Webhook, then copy these values. Replace {PUBLIC_BASE_URL} with your ngrok URL (no trailing slash).",
+  "type": "webhook",
+  "name": "save_profile",
+  "description": "Save the fields of the student's profile collected so far. Call it after completing each interview section — send only fields the student actually stated. The response lists `still_missing` fields; ask for those next. When `profile_complete` is true, the interview is done.",
+  "api_schema": {
+    "url": "{PUBLIC_BASE_URL}/tools/save_profile",
+    "method": "POST",
+    "request_body_schema": {
+      "type": "object",
+      "description": "Any subset of the StudentProfile. Omit fields the student has not provided — never send guesses or empty strings.",
+      "properties": {
+        "full_name": { "type": "string", "description": "Student's full name as stated" },
+        "home_city": { "type": "string", "description": "Student's home city" },
+        "last_qualification": {
+          "type": "object",
+          "description": "Most recent completed qualification",
+          "properties": {
+            "level": { "type": "string", "description": "One of: matric, intermediate, a_levels, bachelors, other. FA/FSc/ICS/ICom = intermediate." },
+            "grades": { "type": "string", "description": "Grades/marks verbatim as stated, e.g. 'FSc 82% (1023/1200)'" },
+            "year_completed": { "type": "integer", "description": "Year the qualification was completed" },
+            "institution": { "type": "string", "description": "School/college/university name" }
+          }
+        },
+        "english_test": {
+          "type": "object",
+          "description": "English language test status",
+          "properties": {
+            "status": { "type": "string", "description": "One of: not_taken, booked, taken" },
+            "test_type": { "type": "string", "description": "One of: ielts_academic, ielts_ukvi, pte_academic, other" },
+            "overall_score": { "type": "number", "description": "Overall band score, e.g. 6.5" },
+            "test_date": { "type": "string", "description": "ISO date taken or booked, e.g. 2026-05-14" }
+          }
+        },
+        "target": {
+          "type": "object",
+          "description": "What and where the student wants to study",
+          "properties": {
+            "country": { "type": "string", "description": "Destination country" },
+            "course": { "type": "string", "description": "Course, e.g. LLB (Bachelor of Laws)" },
+            "intake": { "type": "string", "description": "Intake, e.g. September 2026" },
+            "preferred_universities": { "type": "array", "items": { "type": "string" }, "description": "Universities the student named, if any" }
+          }
+        },
+        "budget": {
+          "type": "object",
+          "description": "Family budget — record amounts exactly as stated",
+          "properties": {
+            "ceiling_per_year": { "type": "number", "description": "Max tuition per year the family can pay, in `currency`" },
+            "currency": { "type": "string", "description": "Currency of ceiling_per_year, e.g. GBP" },
+            "sponsor": { "type": "string", "description": "Who funds the studies, e.g. 'father (textile business owner)'" },
+            "bank_statement_capacity_pkr": { "type": "number", "description": "Amount the sponsor can show held 28 days, in PKR" }
+          }
+        },
+        "notes": { "type": "string", "description": "Anything else the consultancies should know, in the student's words" }
+      }
+    }
+  }
+}
