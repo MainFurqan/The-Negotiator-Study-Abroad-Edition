@@ -1,0 +1,133 @@
+{
+  "vertical_id": "uk-llb",
+  "display_name": "UK Law (LLB) — Pakistani student, September 2026 intake",
+  "student_context": {
+    "origin_country": "Pakistan",
+    "destination_country": "United Kingdom",
+    "course": "LLB (Bachelor of Laws)",
+    "intake": "September 2026",
+    "home_city": "Lahore"
+  },
+  "currency": {
+    "quote_currency": "GBP",
+    "report_currency_secondary": "PKR",
+    "gbp_to_pkr_rate": 355.0,
+    "rate_note": "Update before demo; hardcoded fallback if FX API unavailable"
+  },
+  "benchmarks": {
+    "published_deposits": [
+      { "university": "Queen Mary University of London", "deposit_gbp": 2000 },
+      { "university": "University of Manchester", "deposit_gbp": 6000 },
+      { "university": "UWE Bristol", "deposit_gbp": 8500 },
+      { "university": "University of Hull", "deposit_gbp": 10000 }
+    ],
+    "ukvi_maintenance": {
+      "outside_london_gbp_per_month": 1136,
+      "london_gbp_per_month": 1483,
+      "months_required": 9
+    },
+    "typical_tuition_gbp_range": [14000, 25000],
+    "service_fee_market_range_gbp": [0, 500],
+    "market_floor_total_gbp": 300,
+    "ihs_gbp_per_year": 776,
+    "visa_fee_gbp": 490
+  },
+  "quote_items": [
+    "service_fee",
+    "university_application_fee",
+    "deposit",
+    "visa_processing_fee",
+    "ihs_surcharge",
+    "document_attestation",
+    "ielts_booking",
+    "other"
+  ],
+  "red_flag_rules": [
+    {
+      "id": "deposit_padding",
+      "description": "Quoted deposit exceeds the university's published deposit figure",
+      "check": "quoted_deposit > published_deposit_for_university",
+      "severity": "high",
+      "agent_line": "The published deposit for {university} is £{published}. Can you explain why you're quoting £{quoted}?"
+    },
+    {
+      "id": "below_market_floor",
+      "description": "Total consultancy charges below market floor — likely hidden fees later",
+      "check": "total_consultancy_charges < market_floor_total_gbp",
+      "severity": "medium",
+      "agent_line": "That's well below what other consultancies charge. Are there any fees that come up later in the process?"
+    },
+    {
+      "id": "guaranteed_visa",
+      "description": "Claims of guaranteed visa or guaranteed admission",
+      "check": "transcript_contains_guarantee_claim",
+      "severity": "high",
+      "agent_line": "I understood visa decisions are made only by UKVI. Is that guarantee in writing?"
+    },
+    {
+      "id": "pressure_tactics",
+      "description": "Artificial urgency: pay-today discounts, 'last seat' claims",
+      "check": "transcript_contains_urgency_claim",
+      "severity": "low",
+      "agent_line": "I won't be deciding today. Does that offer stand if I come back next week?"
+    }
+  ],
+  "negotiation": {
+    "levers": [
+      {
+        "id": "competitor_service_fee",
+        "line": "Another consultancy quoted £{amount} for the same service. Can you match or beat that?"
+      },
+      {
+        "id": "fee_waiver_ask",
+        "line": "Some consultancies charge no service fee because universities pay them commission. Why should I pay yours?"
+      },
+      {
+        "id": "bundle_ask",
+        "line": "If I use you for the visa file as well, can you waive the application service fee?"
+      },
+      {
+        "id": "itemisation_ask",
+        "line": "Before any total, I need each fee itemised separately — service, application, deposit, visa."
+      }
+    ],
+    "honesty_constraints": [
+      "Never invent grades, IELTS scores, or financial figures — use only the confirmed StudentProfile.",
+      "Never fabricate a competitor offer — leverage lines may cite ONLY amounts returned by the get_leverage tool.",
+      "Never accept or promise payment on the call."
+    ],
+    "target_outcomes": ["quote", "callback_commitment", "documented_decline"]
+  },
+  "ai_disclosure": {
+    "policy": "disclose_when_asked",
+    "line": "Yes — I'm an AI assistant calling on behalf of a real student who reviews everything I gather. Are you comfortable continuing?"
+  },
+  "personas": [
+    {
+      "id": "commission_pusher",
+      "name": "Adeel — SkyBridge Consultants",
+      "style": "Friendly, evasive on fees, pushes commission-paying universities (Hull, UWE) over the student's stated preferences, dodges itemisation twice before yielding.",
+      "resistance": "Deflects fee questions with 'package deals'; only itemises when pressed a third time.",
+      "concession_rule": "Drops service fee from £350 to £200 only when confronted with a cheaper competitor quote."
+    },
+    {
+      "id": "fee_hider",
+      "name": "Maryam — Crescent Education",
+      "style": "Professional and precise, but quotes a low headline fee and reveals attestation/courier/file charges only when asked directly per-item.",
+      "resistance": "Answers only exactly what is asked; never volunteers extra fees.",
+      "concession_rule": "Waives the £100 'file opening' charge if the caller flags the below-market-floor red flag."
+    },
+    {
+      "id": "stonewaller",
+      "name": "Rana sahib — Al-Falah Visa Services",
+      "style": "Brusque, insists on an office visit, refuses prices on the phone, questions whether caller is genuine, asks if it's a robot.",
+      "resistance": "Gives no numbers for the first half of the call; tests AI disclosure.",
+      "concession_rule": "If caller handles the AI question honestly and cites a specific competitor quote, grudgingly gives an itemised quote or commits to a callback with a named time."
+    }
+  ],
+  "call_list": {
+    "search_query": "study abroad consultants UK visa Lahore",
+    "target_count": 5,
+    "note": "Phase 1 script fills data/call_list.json from Google Places or OSM"
+  }
+}

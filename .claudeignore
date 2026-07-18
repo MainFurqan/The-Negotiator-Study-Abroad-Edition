@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+venv/
+__pycache__/
+.pytest_cache/
+*.mp3
+*.wav
+*.m4a
+*.pdf
+package-lock.json
+data/recordings/
+.env
+*.db
+*.sqlite3
+.git/

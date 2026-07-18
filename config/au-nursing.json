@@ -1,0 +1,38 @@
+{
+  "vertical_id": "au-nursing",
+  "display_name": "Australia Nursing (BN) — STUB proving vertical-as-config swap",
+  "_note": "Deliberately minimal. Same schema as uk-llb.json — swapping this file retargets the whole system with zero code changes.",
+  "student_context": {
+    "origin_country": "Pakistan",
+    "destination_country": "Australia",
+    "course": "Bachelor of Nursing",
+    "intake": "February 2027",
+    "home_city": "Karachi"
+  },
+  "currency": {
+    "quote_currency": "AUD",
+    "report_currency_secondary": "PKR",
+    "gbp_to_pkr_rate": null,
+    "aud_to_pkr_rate": 186.0
+  },
+  "benchmarks": {
+    "published_deposits": [],
+    "typical_tuition_aud_range": [30000, 40000],
+    "service_fee_market_range_aud": [0, 800],
+    "market_floor_total_aud": 400
+  },
+  "quote_items": [
+    "service_fee",
+    "university_application_fee",
+    "deposit",
+    "visa_processing_fee",
+    "oshc_health_cover",
+    "skills_assessment",
+    "other"
+  ],
+  "red_flag_rules": [],
+  "negotiation": { "levers": [], "honesty_constraints": [], "target_outcomes": ["quote", "callback_commitment", "documented_decline"] },
+  "ai_disclosure": { "policy": "disclose_when_asked", "line": "Yes — I'm an AI assistant calling on behalf of a real student." },
+  "personas": [],
+  "call_list": { "search_query": "study abroad consultants Australia visa Karachi", "target_count": 5 }
+}

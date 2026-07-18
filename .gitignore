@@ -1,0 +1,27 @@
+# Secrets
+.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Databases
+*.db
+*.sqlite3
+
+# Audio recordings (large binaries — keep out of git)
+data/recordings/
+*.mp3
+*.wav
+*.m4a
+
+# OS / editor
+.DS_Store
+Thumbs.db
