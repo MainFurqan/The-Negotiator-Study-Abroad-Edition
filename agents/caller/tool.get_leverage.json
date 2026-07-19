@@ -1,0 +1,17 @@
+{
+  "type": "webhook",
+  "name": "get_leverage",
+  "description": "The ONLY permitted source of competitor comparisons. Call once after both sweeps are done (or when they refuse numbers after two asks). Returns the best competing itemised offer already gathered from other consultancies, plus ready-to-say lines with the exact amounts. If has_leverage is false, no comparison exists — never invent one.",
+  "api_schema": {
+    "url": "{PUBLIC_BASE_URL}/tools/get_leverage",
+    "method": "POST",
+    "request_body_schema": {
+      "type": "object",
+      "description": "Identifies which call is asking, so its own figures are excluded.",
+      "required": ["call_id"],
+      "properties": {
+        "call_id": { "type": "integer", "description": "The call reference from the system prompt ({{call_id}})" }
+      }
+    }
+  }
+}

@@ -1,8 +1,10 @@
 # Caller agent — setup, text-mode testing, and the real Twilio call
 
-The Caller (Phase 4) phones consultancies, extracts an itemised quote, logs every figure
-mid-call via `log_quote` (the dashboard board fills live), and ends every call through
-`end_call_outcome`. Iterate in TEXT mode; voice/Twilio minutes are for the golden calls only.
+The Caller (Phases 4+5) phones consultancies, extracts an itemised quote, logs every figure
+mid-call via `log_quote` (the dashboard board fills live), negotiates with `get_leverage`
+(DB-sourced comparisons only), challenges padded figures with `red_flag_check`, and ends every
+call through `end_call_outcome`. Iterate in TEXT mode; voice/Twilio minutes are for the golden
+calls only.
 
 ## One-time setup (agent)
 
@@ -14,9 +16,13 @@ mid-call via `log_quote` (the dashboard board fills live), and ends every call t
    - First message: leave EMPTY / set to blank — the consultancy answers the phone first.
      If the platform requires one, use: "Assalam o alaikum, am I through to {{consultancy_name}}?"
    - LLM: default; temperature low.
-   - Tools → Add tool → Webhook, twice: copy `tool.log_quote.json` and
-     `tool.end_call_outcome.json`, replacing `{PUBLIC_BASE_URL}` with the ngrok URL.
-     (ngrok URL changes on restart — update both tools when it does.)
+   - Tools → Add tool → Webhook, FOUR times: `tool.log_quote.json`, `tool.end_call_outcome.json`,
+     `tool.get_leverage.json`, `tool.red_flag_check.json` — replacing `{PUBLIC_BASE_URL}` with
+     the ngrok URL. (ngrok URL changes on restart — update all four tools when it does.)
+     NOTE: the ElevenLabs "JSON Mode" editor uses its own internal schema — use the **Form**
+     view instead and transcribe name/description/URL/parameters from each `tool.*.json`
+     (each JSON property = one Body parameter; its `required` array marks which fields to tick;
+     Value type = LLM Prompt).
 3. Put the agent id into `.env` as `ELEVENLABS_AGENT_ID_CALLER`.
 
 ## One-time setup (Twilio → ElevenLabs)
@@ -45,6 +51,24 @@ mid-call via `log_quote` (the dashboard board fills live), and ends every call t
    stated (invention); the Caller accepts a package price; it skips a sweep; or the call ends
    without `end_call_outcome`.
 
+## The negotiation test loop (Phase 5 exit criterion)
+
+Needs at least one PRIOR call ended as `quote` in the DB — that is the leverage. Then run the
+relay loop above against a second persona (Adeel the commission-pusher folds his £350 service
+fee to £200 against a named competitor quote; Maryam waives her £100 file-opening charge when
+the below-market-floor flag is voiced):
+
+1. After both sweeps the Caller must call `get_leverage` and deliver the "say" line with the
+   EXACT amounts returned — nothing else.
+2. When a deposit is stated for a named university, the Caller must `red_flag_check` it in the
+   same turn and, if flagged, voice the benchmark line ("The published deposit for X is £N…").
+3. Any price the persona moves must be re-logged with `is_revised` — the board shows the
+   strikethrough and the report page (localhost:3000/report) shows "negotiated −£N".
+4. PASS = one price/term measurably changes because of tool-fetched leverage, and the report
+   ranks the calls with the red flags annotated.
+5. FAIL if: the Caller cites any figure not in a tool response (fabricated leverage — the
+   cardinal sin); it does the benchmark arithmetic itself; or it haggles past one refusal.
+
 ## The real-call exit test (Phase 4 exit criterion)
 
 Board page → pick a call-list entry or persona (leave "dry run" unticked) → Start. Your phone
@@ -57,5 +81,6 @@ and a structured outcome = Phase 4 done.
 - Every figure logged in the same turn it is stated, exact amounts, no rounding.
 - Package prices rejected every time; two sweeps always asked.
 - "Are you an AI?" → the exact disclosure line, then straight back to the last question.
-- No profile fact stated that isn't in the frozen profile; no competitor offers cited (Phase 5).
+- No profile fact stated that isn't in the frozen profile; competitor amounts ONLY from
+  `get_leverage`, benchmark figures ONLY from `red_flag_check` "say" lines.
 - Exactly one end_call_outcome per call, with detail for callbacks/declines.

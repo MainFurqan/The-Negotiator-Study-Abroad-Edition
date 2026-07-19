@@ -1,0 +1,21 @@
+{
+  "type": "webhook",
+  "name": "red_flag_check",
+  "description": "Verify a stated figure or claim against published benchmarks. Triggers: a deposit stated for a named university (check_type deposit + university + amount); free/zero-fee counselling or both sweeps done (total_charges); a visa/admission guarantee (guarantee_claim + detail); pay-today or last-seat pressure (pressure_claim + detail). If the response contains a 'say' line, say it verbatim as your next sentence.",
+  "api_schema": {
+    "url": "{PUBLIC_BASE_URL}/tools/red_flag_check",
+    "method": "POST",
+    "request_body_schema": {
+      "type": "object",
+      "description": "One check per call — the server owns the benchmark figures.",
+      "required": ["call_id", "check_type"],
+      "properties": {
+        "call_id": { "type": "integer", "description": "The call reference from the system prompt ({{call_id}})" },
+        "check_type": { "type": "string", "description": "One of: deposit, total_charges, guarantee_claim, pressure_claim" },
+        "university": { "type": "string", "description": "deposit check only: the university the deposit is for, as the consultant named it" },
+        "amount": { "type": "number", "description": "deposit check only: the deposit amount they quoted, digits only" },
+        "detail": { "type": "string", "description": "guarantee_claim / pressure_claim: the claim in the consultant's own words, verbatim" }
+      }
+    }
+  }
+}

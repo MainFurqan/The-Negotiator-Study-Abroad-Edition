@@ -54,4 +54,20 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
   agent in ElevenLabs (paste system-prompt.md, add both webhook tools, set dynamic-variable
   defaults), Twilio number import → ELEVENLABS_PHONE_NUMBER_ID + VERIFIED_TARGET_NUMBER in
   .env, text-mode relay test vs personas, then the real-call exit test (see agents/caller/README.md).
-- Next: Phase 5 (Closer — get_leverage + red_flag_check tools + report generator).
+- Phase 5 (Closer): code DONE — `/tools/get_leverage` (competitor comparisons ONLY from ended
+  `quote` calls in SQLite, ready-to-say lever lines from config) + `/tools/red_flag_check`
+  (4 check_types: deposit vs published benchmarks / total_charges vs market floor /
+  guarantee_claim / pressure_claim; flags persist to red_flags, agent says the returned line)
+  in `backend/app/calls.py`; `/api/report` generator (`backend/app/report.py`: ranked GBP+PKR,
+  red-flag annotated, savings from revisions, deterministic recommendation); report page
+  `frontend/app/report/` (+ board link, board revision-collapse fix); Caller template now has
+  NEGOTIATE step + both tool sections (mechanical triggers), rendered; reference tool configs
+  `agents/caller/tool.get_leverage.json` + `tool.red_flag_check.json`; eval
+  `python -X utf8 scripts/test_closer.py` (17 checks, backs up + restores the DB) ALL PASS
+  2026-07-19; report page verified in browser. Twilio number imported in ElevenLabs
+  (+1 218 309 4295). MANUAL remaining: add the 2 new webhook tools to the Caller agent
+  (ElevenLabs → use FORM view, not JSON mode — see agents/caller/README.md), re-paste updated
+  caller system-prompt.md + publish, `ELEVENLABS_PHONE_NUMBER_ID` (phnum_…) into .env,
+  text-mode negotiation relay test (README "negotiation test loop"), then the golden calls.
+- Development COMPLETE. Next: manual agent config + golden calls + demo recording (Phases 7–8);
+  no new code phases unless asked.
