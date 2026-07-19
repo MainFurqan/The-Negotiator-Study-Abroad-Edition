@@ -10,6 +10,7 @@
   },
   "currency": {
     "quote_currency": "GBP",
+    "symbol": "£",
     "report_currency_secondary": "PKR",
     "gbp_to_pkr_rate": 374.0,
     "rate_note": "Interbank rate 2026-07-18 (exchangerates.org.uk). Update before demo; hardcoded fallback if FX API unavailable"
@@ -163,21 +164,53 @@
       "name": "Adeel — SkyBridge Consultants",
       "style": "Friendly, evasive on fees, pushes commission-paying universities (Hull, UWE) over the student's stated preferences, dodges itemisation twice before yielding.",
       "resistance": "Deflects fee questions with 'package deals'; only itemises when pressed a third time.",
-      "concession_rule": "Drops service fee from £350 to £200 only when confronted with a cheaper competitor quote."
+      "concession_rule": "Drops service fee from £350 to £200 only when confronted with a cheaper competitor quote.",
+      "quote_sheet": {
+        "universities_pushed": ["University of Hull", "UWE Bristol"],
+        "fees": [
+          { "item": "service_fee", "amount_gbp": 350, "when": "only_when_pressed", "note": "hidden inside 'the package' until the third direct ask; drops to £200 ONLY against a named cheaper competitor quote" },
+          { "item": "university_application_fee", "amount_gbp": 90, "when": "on_request", "note": "per application" },
+          { "item": "deposit", "amount_gbp": 10000, "when": "volunteered", "note": "University of Hull — matches published figure; pitched as 'totally standard for Pakistani students'" },
+          { "item": "deposit", "amount_gbp": 8500, "when": "volunteered", "note": "UWE Bristol — matches published figure" },
+          { "item": "deposit", "amount_gbp": 8000, "when": "on_request", "note": "University of Manchester — PADDED above the published £6,000 (calls the extra 'our facilitation reserve, refundable'). Deposit-padding red-flag bait." },
+          { "item": "document_attestation", "amount_gbp": 0, "when": "on_request", "note": "'included in the package' — refuses to price it separately" }
+        ]
+      }
     },
     {
       "id": "fee_hider",
       "name": "Maryam — Crescent Education",
       "style": "Professional and precise, but quotes a low headline fee and reveals attestation/courier/file charges only when asked directly per-item.",
       "resistance": "Answers only exactly what is asked; never volunteers extra fees.",
-      "concession_rule": "Waives the £100 'file opening' charge if the caller flags the below-market-floor red flag."
+      "concession_rule": "Waives the £100 'file opening' charge if the caller flags the below-market-floor red flag.",
+      "quote_sheet": {
+        "universities_pushed": ["Queen Mary University of London", "University of Manchester"],
+        "fees": [
+          { "item": "service_fee", "amount_gbp": 0, "when": "volunteered", "note": "'our counselling is completely free' — the below-market-floor red-flag bait" },
+          { "item": "other", "amount_gbp": 100, "when": "only_when_pressed", "note": "'file opening charge' — waived ONLY if the caller flags that free counselling usually means hidden fees" },
+          { "item": "document_attestation", "amount_gbp": 120, "when": "on_request", "note": "revealed only if attestation is asked about by name" },
+          { "item": "other", "amount_gbp": 45, "when": "only_when_pressed", "note": "courier charge — surfaces only on 'are there ANY other charges?' asked a second time" },
+          { "item": "other", "amount_gbp": 150, "when": "only_when_pressed", "note": "'embassy facilitation' — surfaces only on the second all-fees sweep" },
+          { "item": "university_application_fee", "amount_gbp": 90, "when": "on_request" },
+          { "item": "deposit", "amount_gbp": 2000, "when": "on_request", "note": "Queen Mary — accurate; her deposits are honest, the add-ons are the trick" },
+          { "item": "deposit", "amount_gbp": 6000, "when": "on_request", "note": "University of Manchester — accurate" }
+        ]
+      }
     },
     {
       "id": "stonewaller",
       "name": "Rana sahib — Al-Falah Visa Services",
       "style": "Brusque, insists on an office visit, refuses prices on the phone, questions whether caller is genuine, asks if it's a robot.",
       "resistance": "Gives no numbers for the first half of the call; tests AI disclosure.",
-      "concession_rule": "If caller handles the AI question honestly and cites a specific competitor quote, grudgingly gives an itemised quote or commits to a callback with a named time."
+      "concession_rule": "If caller handles the AI question honestly and cites a specific competitor quote, grudgingly gives an itemised quote or commits to a callback with a named time.",
+      "quote_sheet": {
+        "universities_pushed": ["Queen Mary University of London"],
+        "fees": [
+          { "item": "service_fee", "amount_gbp": 250, "when": "only_when_pressed", "note": "flat, all-inclusive; revealed only AFTER the concession trigger fires" },
+          { "item": "deposit", "amount_gbp": 2000, "when": "only_when_pressed", "note": "Queen Mary — accurate published figure; he actually gives the best deal in the market" },
+          { "item": "university_application_fee", "amount_gbp": 0, "when": "on_request", "note": "'we don't charge for that, that is agent nonsense'" }
+        ]
+      }
     }
   ],
   "call_list": {

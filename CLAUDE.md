@@ -35,4 +35,11 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
   re-paste updated system-prompt.md into ElevenLabs (name/city save fix) and re-publish;
   swap voice Eric → female voice for Sana before demo. Note: ngrok URL changes on restart —
   update the tool URL in ElevenLabs when it does.
-- Next: Phase 3 (counterparty persona agents + role-play cue cards).
+- Phase 3 (counterparty market): code DONE — persona quote sheets in `config/uk-llb.json`
+  (`personas[].quote_sheet`), 3 persona prompts in `agents/persona-*/` (rendered by
+  `scripts/render_agent_prompt.py`, which now injects persona blocks + benchmarks), human
+  cue cards in `agents/cue-cards/`, setup guide `agents/personas-setup.md`. MANUAL remaining:
+  create the 3 agents in ElevenLabs (no tools needed), save IDs to .env, run the text-mode
+  exit tests per the guide (hard-but-succeeds bar), save transcripts to
+  `data/transcripts/persona-<id>-textrun.md`.
+- Next: Phase 4 (Caller agent + Twilio outbound + log_quote live board).
