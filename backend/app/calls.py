@@ -1,4 +1,4 @@
-"""Phase 4 — the Caller's server side.
+"""Phases 4+5 — the Caller's and Closer's server side.
 
 Call lifecycle:
   POST /api/calls           creates a call row and (unless dry_run) triggers an
@@ -7,6 +7,13 @@ Call lifecycle:
                             into the call as a dynamic variable (judged rule).
   POST /tools/log_quote     mid-call webhook: one fee item per call, appears on
                             the dashboard board live while the call is running.
+  POST /tools/get_leverage  mid-call webhook: the ONLY permitted source of
+                            competitor comparisons — best competing offer from
+                            SQLite, never fabricated (judged rule).
+  POST /tools/red_flag_check
+                            mid-call webhook: validates a stated figure/claim
+                            against config benchmarks; flags persist to red_flags
+                            and the agent says the returned line on the call.
   POST /tools/end_call_outcome
                             every call MUST end through this: quote |
                             callback_commitment | documented_decline (judged rule).
@@ -112,6 +119,38 @@ def _quotes_for(conn, call_id: int) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def effective_rows(quotes: list[dict]) -> list[dict]:
+    """Latest figure wins per line item — revisions supersede the original row.
+
+    Line-item identity is (item, university), except 'other' where the note is
+    the only thing distinguishing e.g. a courier charge from a file-opening
+    charge — those stay separate rows.
+    """
+    collapsed: dict[tuple, dict] = {}
+    for q in quotes:  # already in log order
+        key = (q["item"], q["university"] or "")
+        if q["item"] == "other" and not q["is_revised"]:
+            key = (*key, q["note"] or "")
+        elif q["item"] == "other":
+            # a revision to an 'other' item targets the row it revises_from
+            match = next((k for k, v in collapsed.items()
+                          if k[:2] == key and v["amount"] == q.get("revised_from")), None)
+            key = match or (*key, q["note"] or "")
+        collapsed[key] = q
+    return list(collapsed.values())
+
+
+def _consultancy_total(rows: list[dict]) -> float:
+    """What the consultancy itself charges — deposits pass through to universities."""
+    return sum(q["amount"] for q in rows if q["item"] != "deposit")
+
+
+def _fill(line: str, **values) -> str:
+    for k, val in values.items():
+        line = line.replace("{" + k + "}", str(val))
+    return line
+
+
 # ---- agent tool webhooks ----------------------------------------------------
 
 @router.post("/tools/log_quote")
@@ -148,6 +187,155 @@ def log_quote(body: dict) -> dict:
         "logged": item,
         "items_not_yet_logged": [i for i in valid_items if i not in logged and i != "other"],
     }
+
+
+@router.post("/tools/get_leverage")
+def get_leverage(body: dict) -> dict:
+    """The ONLY permitted source of competitor comparisons (judged honesty rule).
+
+    Returns the best competing itemised offer already in SQLite — lowest total
+    consultancy charges from other ENDED calls, plus the lowest-deposit
+    university route seen anywhere. If nothing competes yet, says so explicitly:
+    the agent must then make no comparison at all.
+    """
+    v = get_vertical()
+    levers = {l["id"]: l["line"] for l in v["negotiation"]["levers"]}
+    sym = v["currency"]["symbol"]
+    with get_conn() as conn:
+        call = _resolve_call(conn, body.get("call_id"))
+        competitors = []
+        for row in conn.execute(
+            # only COMPLETE quotes compete — citing a partial figure from a
+            # callback/decline call as "their offer" would be dishonest leverage
+            "SELECT * FROM calls WHERE id != ? AND outcome = 'quote' ORDER BY id",
+            (call["id"],),
+        ).fetchall():
+            rows = effective_rows(_quotes_for(conn, row["id"]))
+            if not rows:
+                continue
+            competitors.append({
+                "consultancy_name": row["consultancy_name"],
+                "call_id": row["id"],
+                "rows": rows,
+                "total": _consultancy_total(rows),
+            })
+
+    if not competitors:
+        return {
+            "ok": True, "has_leverage": False, "best_competitor": None, "lowest_deposit": None,
+            "say": None,
+            "rule": "NO competing quotes exist. Do not mention, hint at, or invent any comparison.",
+        }
+
+    best = min(competitors, key=lambda c: c["total"])
+    service_fee = next((q["amount"] for q in best["rows"] if q["item"] == "service_fee"), None)
+    deposits = [
+        {"university": q["university"], "amount": q["amount"],
+         "consultancy_name": c["consultancy_name"]}
+        for c in competitors for q in c["rows"]
+        if q["item"] == "deposit" and q["university"] and q["amount"] > 0
+    ]
+    lowest_dep = min(deposits, key=lambda d: d["amount"]) if deposits else None
+
+    say = _fill(levers["competitor_service_fee"],
+                amount=f"{service_fee if service_fee is not None else best['total']:,.0f}")
+    say_deposit = None
+    if lowest_dep:
+        say_deposit = _fill(levers["lower_deposit_university"], currency=sym,
+                            university=lowest_dep["university"],
+                            amount=f"{lowest_dep['amount']:,.0f}")
+    return {
+        "ok": True,
+        "has_leverage": True,
+        "best_competitor": {
+            "consultancy_name": best["consultancy_name"],
+            "call_id": best["call_id"],
+            "total_consultancy_charges": best["total"],
+            "service_fee": service_fee,
+            "itemised": [
+                {"item": q["item"], "amount": q["amount"], "university": q["university"]}
+                for q in best["rows"]
+            ],
+        },
+        "lowest_deposit": lowest_dep,
+        "say": say,
+        "say_deposit": say_deposit,
+        "rule": "Cite ONLY the amounts in this response — no other competitor figures exist.",
+    }
+
+
+@router.post("/tools/red_flag_check")
+def red_flag_check(body: dict) -> dict:
+    """Validate a stated figure/claim against config benchmarks (judged rule).
+
+    check_type: deposit | total_charges | guarantee_claim | pressure_claim.
+    A confirmed flag is persisted to red_flags (the report annotates it) and the
+    response carries the exact line the agent says on the call.
+    """
+    v = get_vertical()
+    rules = {r["id"]: r for r in v["red_flag_rules"]}
+    check = body.get("check_type")
+
+    with get_conn() as conn:
+        call = _resolve_call(conn, body.get("call_id"))
+
+        if check == "deposit":
+            university, amount = body.get("university"), body.get("amount")
+            if not university or not isinstance(amount, (int, float)):
+                raise HTTPException(422, "deposit check needs university and amount (the quoted deposit)")
+            published = next(
+                (d for d in v["benchmarks"]["published_deposits"]
+                 if d["university"].casefold() in university.casefold()
+                 or university.casefold() in d["university"].casefold()),
+                None,
+            )
+            if published is None:
+                return {"ok": True, "flagged": False, "say": None,
+                        "note": f"no published benchmark for '{university}' — cannot verify, do not challenge"}
+            if amount <= published["deposit_gbp"]:
+                return {"ok": True, "flagged": False, "say": None,
+                        "note": f"matches or beats the published {published['university']} deposit "
+                                f"of £{published['deposit_gbp']:,}"}
+            rule, detail = rules["deposit_padding"], (
+                f"{published['university']}: quoted £{amount:,.0f} vs published £{published['deposit_gbp']:,} "
+                f"({published['source']})"
+            )
+            say = _fill(rule["agent_line"], university=published["university"],
+                        published=f"{published['deposit_gbp']:,}", quoted=f"{amount:,.0f}")
+
+        elif check == "total_charges":
+            floor = v["benchmarks"]["market_floor_total_gbp"]
+            total = _consultancy_total(effective_rows(_quotes_for(conn, call["id"])))
+            if total >= floor:
+                return {"ok": True, "flagged": False, "say": None,
+                        "note": f"total consultancy charges £{total:,.0f} are at/above the £{floor} market floor"}
+            rule = rules["below_market_floor"]
+            detail = f"total consultancy charges £{total:,.0f} below the £{floor} market floor"
+            say = rule["agent_line"]
+
+        elif check in ("guarantee_claim", "pressure_claim"):
+            detail = body.get("detail")
+            if not detail:
+                raise HTTPException(422, f"'{check}' needs detail — the claim in the consultant's own words")
+            rule = rules["guaranteed_visa" if check == "guarantee_claim" else "pressure_tactics"]
+            say = rule["agent_line"]
+
+        else:
+            raise HTTPException(
+                422, "check_type must be one of: deposit, total_charges, guarantee_claim, pressure_claim")
+
+        already = conn.execute(
+            "SELECT id FROM red_flags WHERE call_id = ? AND rule_id = ?",
+            (call["id"], rule["id"]),
+        ).fetchone()
+        if not already:
+            conn.execute(
+                "INSERT INTO red_flags (call_id, rule_id, detail) VALUES (?, ?, ?)",
+                (call["id"], rule["id"], detail),
+            )
+    return {"ok": True, "flagged": True, "rule_id": rule["id"], "severity": rule["severity"],
+            "detail": detail, "say": say,
+            "note": "already flagged on this call" if already else "flag recorded — say the line above"}
 
 
 @router.post("/tools/end_call_outcome")

@@ -143,6 +143,10 @@
         "line": "If I use you for the visa file as well, can you waive the application service fee?"
       },
       {
+        "id": "lower_deposit_university",
+        "line": "Another consultancy can route the same course through {university} with a {currency}{amount} deposit. Do you have a lower-deposit option?"
+      },
+      {
         "id": "itemisation_ask",
         "line": "Before any total, I need each fee itemised separately — service, application, deposit, visa."
       }
