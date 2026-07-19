@@ -29,7 +29,10 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
   `data/call_list.json` built by `scripts/build_call_list.py` (OSM Overpass).
 - Phase 2 (Estimator): code DONE — intake backend (`/tools/save_profile`, doc upload → `backend/app/docparse.py`,
   confirm/freeze API), confirmation dashboard (`frontend/app/page.tsx`), agent assets in `agents/estimator/`
-  (prompt rendered from config via `scripts/render_agent_prompt.py`). Verified end-to-end locally.
-  MANUAL remaining: put OPENAI_API_KEY in .env; create the agent in ElevenLabs per `agents/estimator/README.md`;
-  text-mode golden transcript → `data/transcripts/intake-golden.md`.
+  (prompt rendered from config via `scripts/render_agent_prompt.py`). Agent LIVE in ElevenLabs
+  (id in .env), webhook verified end-to-end via ngrok, golden transcript at
+  `data/transcripts/intake-golden.md`. MANUAL remaining: OPENAI_API_KEY + ELEVENLABS_API_KEY in .env;
+  re-paste updated system-prompt.md into ElevenLabs (name/city save fix) and re-publish;
+  swap voice Eric → female voice for Sana before demo. Note: ngrok URL changes on restart —
+  update the tool URL in ElevenLabs when it does.
 - Next: Phase 3 (counterparty persona agents + role-play cue cards).
