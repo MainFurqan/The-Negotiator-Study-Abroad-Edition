@@ -57,16 +57,23 @@ const OUTCOME_STYLES: Record<string, string> = {
   documented_decline: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
 };
 
-/** Latest figure wins per (item, university) — revisions supersede the original row. */
+/** Latest figure wins per line item — revisions supersede the original row.
+ * Mirrors backend effective_rows(): 'other' items are distinguished by note
+ * (a courier charge must not swallow a file-opening charge); a revision to an
+ * 'other' item replaces the row whose amount it revises_from. */
 function effectiveRows(quotes: Quote[]): Quote[] {
-  const byKey = new Map<string, Quote>();
-  for (const q of quotes) byKey.set(`${q.item}|${q.university ?? ""}|${q.note ?? ""}`, q);
-  // a revision often repeats the note; also collapse plain (item, university) pairs
   const collapsed = new Map<string, Quote>();
-  for (const q of byKey.values()) {
-    const key = `${q.item}|${q.university ?? ""}`;
-    const prev = collapsed.get(key);
-    if (!prev || q.is_revised || q.logged_at >= prev.logged_at) collapsed.set(key, q);
+  for (const q of quotes) {
+    let key = `${q.item}|${q.university ?? ""}`;
+    if (q.item === "other" && !q.is_revised) {
+      key += `|${q.note ?? ""}`;
+    } else if (q.item === "other") {
+      const match = [...collapsed.entries()].find(
+        ([k, v]) => k.startsWith(key + "|") && v.amount === q.revised_from
+      );
+      key = match ? match[0] : `${key}|${q.note ?? ""}`;
+    }
+    collapsed.set(key, q);
   }
   return [...collapsed.values()];
 }
@@ -142,6 +149,9 @@ export default function BoardPage() {
               Rows appear as the Caller logs figures mid-call.{" "}
               <a href="/" className="underline hover:text-zinc-700 dark:hover:text-zinc-300">
                 ← Student profile
+              </a>{" "}
+              <a href="/report" className="underline hover:text-zinc-700 dark:hover:text-zinc-300">
+                Ranked report →
               </a>
             </p>
           </div>
