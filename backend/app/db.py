@@ -1,8 +1,10 @@
 """SQLite storage. One db file, plain sqlite3 — no ORM needed at this scale."""
+import os
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parents[1] / "negotiator.db"
+# NEGOTIATOR_DB lets deployments point at a mounted volume; default = local dev file
+DB_PATH = Path(os.environ.get("NEGOTIATOR_DB") or Path(__file__).resolve().parents[1] / "negotiator.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS student_profile (

@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,7 +20,7 @@ app.include_router(report_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(","),
     allow_methods=["*"],
     allow_headers=["*"],
 )

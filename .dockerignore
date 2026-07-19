@@ -1,0 +1,7 @@
+.git
+.env
+backend/venv
+backend/negotiator.db
+frontend/node_modules
+frontend/.next
+data/uploads

@@ -1,0 +1,36 @@
+# One-box deployment: Caddy terminates HTTPS on $DOMAIN and routes
+#   /api/* /tools/* /health  -> FastAPI backend
+#   everything else          -> Next.js frontend
+# Run from this directory:
+#   DOMAIN=<your-ip>.sslip.io docker compose up -d --build
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file: ../.env
+    environment:
+      NEGOTIATOR_DB: /data/negotiator.db
+    volumes:
+      - dbdata:/data
+    restart: unless-stopped
+
+  frontend:
+    build: ../frontend
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN, e.g. DOMAIN=3-121-45-67.sslip.io}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+    restart: unless-stopped
+
+volumes:
+  dbdata:
+  caddydata:
