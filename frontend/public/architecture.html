@@ -1,0 +1,253 @@
+<title>The Negotiator — Technical Architecture</title>
+<style>
+  :root {
+    --bg: #0e1420;
+    --panel: #151d2c;
+    --panel-2: #1b2536;
+    --line: #2a3650;
+    --ink: #e8edf5;
+    --muted: #8a96aa;
+    --accent: #e8b34b;      /* money / negotiation */
+    --tool: #4fc1b4;        /* webhook tool calls */
+    --flag: #e0605a;        /* red flags */
+    --ok: #7dc981;
+    --mono: "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f2f4f7; --panel: #ffffff; --panel-2: #e9edf3; --line: #ccd4e0;
+      --ink: #1a2333; --muted: #56617a; --accent: #b07d1a; --tool: #157f74;
+      --flag: #bf3a34; --ok: #2e7d38;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1420; --panel: #151d2c; --panel-2: #1b2536; --line: #2a3650;
+    --ink: #e8edf5; --muted: #8a96aa; --accent: #e8b34b; --tool: #4fc1b4;
+    --flag: #e0605a; --ok: #7dc981;
+  }
+  :root[data-theme="light"] {
+    --bg: #f2f4f7; --panel: #ffffff; --panel-2: #e9edf3; --line: #ccd4e0;
+    --ink: #1a2333; --muted: #56617a; --accent: #b07d1a; --tool: #157f74;
+    --flag: #bf3a34; --ok: #2e7d38;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    margin: 0; padding: 2.5rem 1.25rem 4rem; line-height: 1.55;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 2.75rem; }
+
+  /* ---------- header ---------- */
+  header .kicker {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: .6rem;
+  }
+  header h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); margin: 0 0 .5rem; text-wrap: balance; font-weight: 650; }
+  header p { color: var(--muted); max-width: 62ch; margin: 0; }
+
+  h2 {
+    font-size: .8rem; font-family: var(--mono); letter-spacing: .16em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: .55rem; margin: 0 0 1.1rem;
+  }
+  h2 b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- architecture layers ---------- */
+  .arch { display: flex; flex-direction: column; }
+  .layer {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    padding: .9rem 1rem 1rem;
+  }
+  .layer-title {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .65rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .layer-title .tech { color: var(--accent); letter-spacing: .06em; text-transform: none; }
+  .boxes { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .box {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px;
+    padding: .55rem .8rem; flex: 1 1 160px; min-width: 150px;
+  }
+  .box .name { font-weight: 600; font-size: .92rem; }
+  .box .sub { color: var(--muted); font-size: .78rem; margin-top: .15rem; }
+  .box.dim { opacity: .85; }
+
+  .conn {
+    display: flex; align-items: center; gap: .7rem; padding: .45rem 0 .45rem 1.4rem;
+  }
+  .conn .stem { color: var(--tool); font-family: var(--mono); font-size: .95rem; }
+  .conn .lbl { font-family: var(--mono); font-size: .74rem; color: var(--muted); }
+  .conn .lbl em { color: var(--tool); font-style: normal; }
+
+  .chips { display: flex; gap: .45rem; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--mono); font-size: .76rem; padding: .28rem .6rem;
+    border: 1px solid var(--tool); color: var(--tool); border-radius: 999px; white-space: nowrap;
+  }
+  .chip.money { border-color: var(--accent); color: var(--accent); }
+  .chip.flag { border-color: var(--flag); color: var(--flag); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  @media (max-width: 640px) { .split { grid-template-columns: 1fr; } }
+
+  .note {
+    border-left: 3px solid var(--accent); background: var(--panel);
+    padding: .6rem .9rem; font-size: .84rem; color: var(--muted); border-radius: 0 5px 5px 0;
+  }
+  .note b { color: var(--ink); }
+
+  /* ---------- shot list table ---------- */
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .85rem; min-width: 720px; }
+  th {
+    text-align: left; font-family: var(--mono); font-size: .68rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); padding: .5rem .75rem; border-bottom: 1px solid var(--line);
+  }
+  td { padding: .6rem .75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.step { font-family: var(--mono); color: var(--accent); font-weight: 600; white-space: nowrap; }
+  td .t { font-family: var(--mono); font-size: .78rem; color: var(--tool); }
+  td .screen { color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+
+  /* ---------- guardrails ---------- */
+  .rails { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .7rem; }
+  .rail {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: .9rem 1rem;
+  }
+  .rail .name { font-weight: 600; margin-bottom: .3rem; display: flex; align-items: center; gap: .5rem; }
+  .rail .name::before { content: "▪"; color: var(--flag); }
+  .rail p { margin: 0; font-size: .84rem; color: var(--muted); }
+  .rail p code { font-family: var(--mono); font-size: .78rem; color: var(--tool); }
+
+  /* ---------- stat strip ---------- */
+  .stats { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    padding: .7rem 1rem; flex: 1 1 130px; text-align: center;
+  }
+  .stat .n { font-family: var(--mono); font-size: 1.5rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: .74rem; color: var(--muted); }
+  footer { color: var(--muted); font-size: .78rem; font-family: var(--mono); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">Technical architecture · ElevenLabs hackathon</div>
+    <h1>The Negotiator — Study Abroad Edition</h1>
+    <p>Voice agents that phone UK study-abroad consultancies for a Pakistani student, extract
+    itemised quotes, negotiate with database-sourced leverage, and produce a ranked GBP + PKR
+    report. Every number the agent says on a call is traceable to a tool response.</p>
+  </header>
+
+  <section>
+    <h2><b>System map</b> — five layers, one tunnel</h2>
+    <div class="arch">
+      <div class="layer">
+        <div class="layer-title"><span>Voice plane</span><span class="tech">ElevenLabs Agents + Twilio</span></div>
+        <div class="boxes">
+          <div class="box"><div class="name">Estimator</div><div class="sub">interviews the student, builds the profile by voice</div></div>
+          <div class="box"><div class="name">Caller “Bilal”</div><div class="sub">dials out over Twilio · extraction script + negotiation</div></div>
+          <div class="box dim"><div class="name">3 Persona agents</div><div class="sub">synthetic counterparty market for testing (Adeel · Maryam · Rana)</div></div>
+        </div>
+      </div>
+
+      <div class="conn"><span class="stem">│▼</span><span class="lbl">5 tool webhooks · HTTPS over an <em>ngrok tunnel</em> · dynamic variables carry call_id + frozen profile</span></div>
+
+      <div class="layer">
+        <div class="layer-title"><span>Tool layer</span><span class="tech">agent → backend webhooks</span></div>
+        <div class="chips">
+          <span class="chip">save_profile</span>
+          <span class="chip money">log_quote</span>
+          <span class="chip money">get_leverage</span>
+          <span class="chip flag">red_flag_check</span>
+          <span class="chip">end_call_outcome</span>
+        </div>
+      </div>
+
+      <div class="conn"><span class="stem">│▼</span><span class="lbl">validated, guarded (frozen-profile gate · closed-call guard · enum outcomes)</span></div>
+
+      <div class="layer">
+        <div class="layer-title"><span>Backend</span><span class="tech">FastAPI (Python)</span></div>
+        <div class="boxes">
+          <div class="box"><div class="name">intake · calls · report routers</div><div class="sub">webhooks, outbound dial trigger, deterministic report generator</div></div>
+          <div class="box"><div class="name">docparse</div><div class="sub">GPT-4o-mini vision — one isolated function for grade sheets / IELTS</div></div>
+          <div class="box"><div class="name">config/uk-llb.json</div><div class="sub">the whole vertical: quote items, levers, red-flag rules, sourced benchmarks</div></div>
+        </div>
+      </div>
+
+      <div class="conn"><span class="stem">│▼</span><span class="lbl">SQLite — single file, four tables</span></div>
+
+      <div class="split">
+        <div class="layer">
+          <div class="layer-title"><span>Data</span><span class="tech">SQLite</span></div>
+          <div class="chips">
+            <span class="chip">student_profile</span><span class="chip">calls</span>
+            <span class="chip money">quotes</span><span class="chip flag">red_flags</span>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="layer-title"><span>Dashboard</span><span class="tech">Next.js</span></div>
+          <div class="chips">
+            <span class="chip">/ profile · freeze</span>
+            <span class="chip money">/board live quotes</span>
+            <span class="chip">/report ranked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:.7rem"><b>Outbound safety:</b> <span style="font-family:var(--mono)">POST /api/calls</span> → ElevenLabs Twilio outbound API. The backend always dials the verified test number from <span style="font-family:var(--mono)">.env</span> — a real consultancy is never cold-called.</p>
+  </section>
+
+  <section>
+    <h2><b>Call lifecycle</b> — the demo shot list</h2>
+    <div class="scroll">
+      <table>
+        <tr><th>Step</th><th>What happens</th><th>Mechanism</th><th>On screen in the video</th></tr>
+        <tr><td class="step">1 · Intake</td><td>Student talks to the Estimator; profile fields fill as they speak.</td><td><span class="t">save_profile</span> webhook, partial saves</td><td class="screen">Dashboard <b>/</b> — fields appearing live during the voice call</td></tr>
+        <tr><td class="step">2 · Freeze</td><td>Family reviews, edits, confirms. Profile becomes immutable.</td><td><span class="t">POST /api/profile/confirm</span> — dial gate</td><td class="screen">Confirm &amp; Freeze click; “frozen” state</td></tr>
+        <tr><td class="step">3 · Dial</td><td>Pick a consultancy on the board, press Start. Phone rings.</td><td><span class="t">POST /api/calls</span> → Twilio outbound, profile injected verbatim</td><td class="screen">Board + the phone ringing in-shot</td></tr>
+        <tr><td class="step">4 · Extract</td><td>Bilal demands line items, chases each missing item, runs two “any other charges?” sweeps.</td><td><span class="t">log_quote</span> per figure, same turn; response lists items still missing</td><td class="screen"><b>/board</b> rows appearing seconds after each figure is spoken</td></tr>
+        <tr><td class="step">5 · Verify</td><td>A named-university deposit or a “free counselling” claim triggers a benchmark check; discrepancies are voiced.</td><td><span class="t">red_flag_check</span> — benchmarks live server-side, agent reads the returned line</td><td class="screen">Red-flag badge on the board; agent quoting the published figure</td></tr>
+        <tr><td class="step">6 · Negotiate</td><td>After both sweeps Bilal fetches the best competing quote and asks them to match it. One ask, one refusal max.</td><td><span class="t">get_leverage</span> — only completed quotes in SQLite can compete</td><td class="screen">Price fold: strikethrough £350 → £200 on the board</td></tr>
+        <tr><td class="step">7 · Outcome</td><td>Every call ends structured: quote, named-time callback, or documented decline.</td><td><span class="t">end_call_outcome</span> — enum + detail guards</td><td class="screen">Outcome badge landing on the call card</td></tr>
+        <tr><td class="step">8 · Report</td><td>Deterministic ranking — no LLM. GBP + PKR totals, savings from revisions, red flags annotated, plain-language recommendation.</td><td><span class="t">GET /api/report</span></td><td class="screen"><b>/report</b> — 🥇 ranking, “negotiated −£150”, recommendation box</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><b>Honesty guardrails</b> — enforced by architecture, not prompts</h2>
+    <div class="rails">
+      <div class="rail">
+        <div class="name">Leverage cannot be invented</div>
+        <p>Competitor figures exist for the agent only inside a <code>get_leverage</code> response, and the SQL behind it only surfaces calls that ended as complete quotes. No tool response — the figure does not exist.</p>
+      </div>
+      <div class="rail">
+        <div class="name">Benchmarks stay server-side</div>
+        <p>The agent never does fee arithmetic. <code>red_flag_check</code> compares against published deposits and the market floor (source URLs in config) and returns the exact sentence to say.</p>
+      </div>
+      <div class="rail">
+        <div class="name">Profile is frozen, verbatim</div>
+        <p>Grades, IELTS, and funds are injected from the frozen profile only. Anything not in it is answered with “I'd have to check” — estimating is forbidden by the prompt's honesty block.</p>
+      </div>
+      <div class="rail">
+        <div class="name">AI disclosure on request</div>
+        <p>Asked “are you an AI?”, the agent discloses honestly with a fixed line, then returns to its last unanswered question. Never denies, never volunteers.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><b>By the numbers</b></h2>
+    <div class="stats">
+      <div class="stat"><div class="n">5</div><div class="l">voice agents</div></div>
+      <div class="stat"><div class="n">5</div><div class="l">tool webhooks</div></div>
+      <div class="stat"><div class="n">4</div><div class="l">SQLite tables</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">dashboard pages</div></div>
+      <div class="stat"><div class="n">1</div><div class="l">config file = the vertical</div></div>
+      <div class="stat"><div class="n">17</div><div class="l">automated eval checks</div></div>
+    </div>
+  </section>
+
+  <footer>ElevenLabs Agents · Twilio · FastAPI · SQLite · Next.js · GPT-4o-mini (doc parsing only) — swap config/uk-llb.json and the same system negotiates any phone-quote vertical.</footer>
+</div>
