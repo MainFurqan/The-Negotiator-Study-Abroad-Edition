@@ -43,4 +43,15 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
   checklists, not soft rules — folding AND over-resisting both count as failures). MANUAL
   remaining (optional/pre-demo): re-paste latest rendered Maryam prompt (deposit-leak tightening
   landed after her passing run); Rana bonus dodge run (evade robot question → documented decline).
-- Next: Phase 4 (Caller agent + Twilio outbound + log_quote live board).
+- Phase 4 (Caller): code DONE — calls backend (`backend/app/calls.py`: `/tools/log_quote` +
+  `/tools/end_call_outcome` with closed-call/enum/detail guards, `POST /api/calls` outbound
+  trigger via ElevenLabs Twilio — ALWAYS dials VERIFIED_TARGET_NUMBER, dry_run mode for text
+  tests, frozen-profile gate + verbatim `profile_block` injection), live quote board
+  `frontend/app/board/` (2s poll, LIVE badge, revised-price strikethrough, GBP+PKR total),
+  Caller assets in `agents/caller/` (mechanical extraction script, 2 webhook tool configs,
+  README with text-mode relay loop). Verified end-to-end 2026-07-19 via dry-run simulation
+  (webhook guards + live board render checked in browser). MANUAL remaining: create Caller
+  agent in ElevenLabs (paste system-prompt.md, add both webhook tools, set dynamic-variable
+  defaults), Twilio number import → ELEVENLABS_PHONE_NUMBER_ID + VERIFIED_TARGET_NUMBER in
+  .env, text-mode relay test vs personas, then the real-call exit test (see agents/caller/README.md).
+- Next: Phase 5 (Closer — get_leverage + red_flag_check tools + report generator).

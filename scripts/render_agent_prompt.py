@@ -59,6 +59,19 @@ def persona_substitutions(v: dict, persona: dict) -> dict:
     }
 
 
+def caller_substitutions(v: dict) -> dict:
+    """Extra placeholders available only to the agents/caller/ template."""
+    neg = v["negotiation"]
+    return {
+        "quote_items_bullets": "\n".join(f"- {item}" for item in v["quote_items"]),
+        "honesty_constraints": "\n".join(f"- {c}" for c in neg["honesty_constraints"]),
+        "outcomes": " | ".join(neg["target_outcomes"]),
+        "itemisation_line": next(
+            l["line"] for l in neg["levers"] if l["id"] == "itemisation_ask"
+        ),
+    }
+
+
 def main() -> int:
     vertical_id = os.environ.get("VERTICAL", "uk-llb")
     with open(ROOT / "config" / f"{vertical_id}.json", encoding="utf-8") as f:
@@ -80,6 +93,8 @@ def main() -> int:
                 print(f"skip     {agent_dir}: no persona '{persona_id}' in {vertical_id}.json")
                 continue
             tpl_subs = {**subs, **persona_substitutions(vertical, persona)}
+        elif agent_dir == "caller":
+            tpl_subs = {**subs, **caller_substitutions(vertical)}
         rendered = Template(tpl_path.read_text(encoding="utf-8")).substitute(tpl_subs)
         out_path = tpl_path.with_name("system-prompt.md")
         out_path.write_text(rendered, encoding="utf-8", newline="\n")

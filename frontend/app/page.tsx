@@ -164,7 +164,12 @@ export default function Home() {
         <header className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">The Negotiator</h1>
-            <p className="text-sm text-zinc-500">Student profile — review, complete, then freeze.</p>
+            <p className="text-sm text-zinc-500">
+              Student profile — review, complete, then freeze.{" "}
+              <a href="/board" className="underline hover:text-zinc-700 dark:hover:text-zinc-300">
+                Live quote board →
+              </a>
+            </p>
           </div>
           <span
             className={`rounded-full px-3 py-1 text-sm font-medium ${

@@ -1,0 +1,20 @@
+{
+  "_readme": "Webhook tool config for the Caller agent. ElevenLabs dashboard: Agent > Tools > Add tool > Webhook. Replace {PUBLIC_BASE_URL} with the ngrok URL (no trailing slash).",
+  "type": "webhook",
+  "name": "end_call_outcome",
+  "description": "MANDATORY at the end of EVERY call, exactly once, before saying goodbye. Records the structured outcome. 'quote' requires every figure already logged via log_quote; 'callback_commitment' requires a named day and time in detail; 'documented_decline' requires the refusal reason in detail.",
+  "api_schema": {
+    "url": "{PUBLIC_BASE_URL}/tools/end_call_outcome",
+    "method": "POST",
+    "request_body_schema": {
+      "type": "object",
+      "description": "The one structured outcome this call ends in.",
+      "required": ["call_id", "outcome"],
+      "properties": {
+        "call_id": { "type": "integer", "description": "The call reference from the system prompt ({{call_id}})" },
+        "outcome": { "type": "string", "description": "One of: quote, callback_commitment, documented_decline" },
+        "detail": { "type": "string", "description": "callback_commitment: the named day+time and who to ask for, verbatim. documented_decline: their reason, verbatim. quote: optional summary, e.g. which university the quote routes to." }
+      }
+    }
+  }
+}

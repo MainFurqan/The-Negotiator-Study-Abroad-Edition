@@ -1,0 +1,25 @@
+{
+  "_readme": "Webhook tool config for the Caller agent. ElevenLabs dashboard: Agent > Tools > Add tool > Webhook. Replace {PUBLIC_BASE_URL} with the ngrok URL (no trailing slash).",
+  "type": "webhook",
+  "name": "log_quote",
+  "description": "Log ONE fee figure the moment the consultant states it — call this in the same turn you hear the number, once per figure. The response lists items_not_yet_logged: ask for those next, by name. If a previously logged price changes (discount, waiver, correction), call again with is_revised=true and revised_from set to the old amount.",
+  "api_schema": {
+    "url": "{PUBLIC_BASE_URL}/tools/log_quote",
+    "method": "POST",
+    "request_body_schema": {
+      "type": "object",
+      "description": "One fee item, exactly as stated on the call. Never round, convert, or estimate.",
+      "required": ["call_id", "item", "amount"],
+      "properties": {
+        "call_id": { "type": "integer", "description": "The call reference from the system prompt ({{call_id}})" },
+        "item": { "type": "string", "description": "One of: service_fee, university_application_fee, deposit, visa_processing_fee, ihs_surcharge, document_attestation, ielts_booking, other. Use 'other' for anything that fits no category (put what they called it in note)." },
+        "amount": { "type": "number", "description": "The exact amount stated, digits only" },
+        "currency": { "type": "string", "description": "Currency of the amount, e.g. GBP. Omit if GBP." },
+        "university": { "type": "string", "description": "University this figure is tied to (deposits, application fees) — omit for consultancy-wide charges" },
+        "is_revised": { "type": "boolean", "description": "true ONLY when this figure replaces one you already logged (discount, waiver, correction). A waived charge is a revision to 0." },
+        "revised_from": { "type": "number", "description": "The old amount being replaced — required when is_revised is true" },
+        "note": { "type": "string", "description": "Short note in the consultant's own words, e.g. 'file opening charge' or 'refundable facilitation reserve'" }
+      }
+    }
+  }
+}

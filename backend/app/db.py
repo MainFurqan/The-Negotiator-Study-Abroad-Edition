@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS quotes (
     currency TEXT NOT NULL,
     university TEXT,
     is_revised INTEGER NOT NULL DEFAULT 0,  -- 1 = price moved during negotiation
+    revised_from REAL,                 -- original amount before the negotiation moved it
     note TEXT,
     logged_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -56,3 +57,8 @@ def get_conn() -> sqlite3.Connection:
 def init_db() -> None:
     with get_conn() as conn:
         conn.executescript(SCHEMA)
+        # dbs created before phase-4 lack the revised_from column
+        try:
+            conn.execute("ALTER TABLE quotes ADD COLUMN revised_from REAL")
+        except sqlite3.OperationalError:
+            pass
