@@ -162,8 +162,6 @@
     "policy": "disclose_when_asked",
     "line": "Yes — I'm an AI assistant calling on behalf of a real student who reviews everything I gather. Are you comfortable continuing?"
   },
-<<<<<<< HEAD
-=======
   "estimator": {
     "_note": "Voice the Estimator agent speaks in, chosen by the student's stated gender (female voice for female students, otherwise male). Actual ElevenLabs voice_ids come from env ELEVENLABS_VOICE_ID_FEMALE / ELEVENLABS_VOICE_ID_MALE so they are not committed; labels below are display-only.",
     "voices": {
@@ -171,7 +169,6 @@
       "male": { "label": "Bilal", "description": "Calm, professional male counsellor voice" }
     }
   },
->>>>>>> 7bd7dbf (improvements by Meer)
   "personas": [
     {
       "id": "commission_pusher",
@@ -227,8 +224,6 @@
       }
     }
   ],
-<<<<<<< HEAD
-=======
   "agencies": {
     "_note": "The three fixed agencies the caller page offers in its dropdown. Names are REALISTIC BUT FICTIONAL demo brands (not real companies). Each maps to one of the personas above so the questions asked and data captured stay config-driven and reproducible. Regardless of which agency is shown, the backend ALWAYS dials VERIFIED_TARGET_NUMBER (demo-safety rule). To rename an agency or change what it asks, edit display_name / tagline here and the mapped persona's quote_sheet above.",
     "list": [
@@ -261,7 +256,6 @@
       }
     ]
   },
->>>>>>> 7bd7dbf (improvements by Meer)
   "call_list": {
     "search_query": "study abroad consultants UK visa",
     "cities": ["Lahore", "Faisalabad", "Islamabad"],

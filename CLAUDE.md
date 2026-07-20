@@ -71,8 +71,6 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
   text-mode negotiation relay test (README "negotiation test loop"), then the golden calls.
 - Development COMPLETE. Next: manual agent config + golden calls + demo recording (Phases 7–8);
   no new code phases unless asked.
-<<<<<<< HEAD
-=======
 - Production polish pass (2026-07-20): full frontend redesign — dark-first design system
   (`frontend/globals.css` tokens + `components/ui`, `components/shell`), landing `app/page.tsx`,
   animated multi-step intake `app/intake/` (moved off `/`), showpiece live caller `app/board/`
@@ -119,4 +117,3 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
   (README, ARCHITECTURE, DEVELOPMENT, API-REFERENCE, CONFIGURATION, INTEGRATIONS, TROUBLESHOOTING).
   MANUAL remaining unchanged from Phase 5 (ElevenLabs Caller agent config + phone id in .env +
   golden calls); no ElevenLabs/Twilio setup changed by this restructure.
->>>>>>> 7bd7dbf (improvements by Meer)

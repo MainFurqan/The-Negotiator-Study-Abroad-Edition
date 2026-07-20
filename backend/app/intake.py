@@ -8,20 +8,14 @@ against schemas/student-profile.schema.json and freezes it. A frozen profile is
 never edited again — it is injected verbatim into every outbound call (Phase 4).
 """
 import json
-<<<<<<< HEAD
-=======
 import os
->>>>>>> 7bd7dbf (improvements by Meer)
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from jsonschema import Draft202012Validator
 
-<<<<<<< HEAD
-=======
 from .config import get_vertical
->>>>>>> 7bd7dbf (improvements by Meer)
 from .db import get_conn
 
 router = APIRouter()
@@ -30,22 +24,11 @@ SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schemas" / "student-profile
 _validator = Draft202012Validator(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
 
 AGENT_FIELDS = {
-<<<<<<< HEAD
-    "full_name", "home_city", "last_qualification", "english_test",
-=======
     "full_name", "home_city", "gender", "last_qualification", "english_test",
->>>>>>> 7bd7dbf (improvements by Meer)
     "target", "budget", "documents_provided", "notes",
 }
 
 
-<<<<<<< HEAD
-def _latest(conn) -> dict | None:
-    row = conn.execute("SELECT * FROM student_profile ORDER BY id DESC LIMIT 1").fetchone()
-    return dict(row) if row else None
-
-
-=======
 def resolve_estimator_voice(gender: str | None) -> dict:
     """Pick the Estimator agent's voice from the student's gender.
 
@@ -102,7 +85,6 @@ def _activate(conn, row_id: int) -> None:
     conn.execute("UPDATE student_profile SET active = 1 WHERE id = ?", (row_id,))
 
 
->>>>>>> 7bd7dbf (improvements by Meer)
 def _profile_of(row: dict) -> dict:
     return json.loads(row["profile_json"])
 
@@ -114,10 +96,7 @@ def _save(conn, row_id: int | None, profile: dict, confirmed: bool = False) -> d
             ("{}", 0),
         )
         row_id = cur.lastrowid
-<<<<<<< HEAD
-=======
         _activate(conn, row_id)  # a new draft becomes the current working student
->>>>>>> 7bd7dbf (improvements by Meer)
     profile["profile_id"] = row_id
     conn.execute(
         "UPDATE student_profile SET profile_json = ?, confirmed = ? WHERE id = ?",
@@ -202,18 +181,12 @@ async def intake_document(file: UploadFile = File(...), doc_type: str = Form(...
 @router.get("/api/profile")
 def get_profile() -> dict:
     with get_conn() as conn:
-<<<<<<< HEAD
-        row = _latest(conn)
-=======
         row = _current(conn)
->>>>>>> 7bd7dbf (improvements by Meer)
     if not row:
         return {"profile": None}
     return {"profile": _profile_of(row), "confirmed": bool(row["confirmed"])}
 
 
-<<<<<<< HEAD
-=======
 def _summary(row: dict) -> dict:
     """Compact card for the intake student picker — never leaks unrelated fields."""
     p = _profile_of(row)
@@ -282,7 +255,6 @@ def estimator_session(gender: str | None = None) -> dict:
     return {"ok": True, **resolve_estimator_voice(gender)}
 
 
->>>>>>> 7bd7dbf (improvements by Meer)
 @router.put("/api/profile")
 def put_profile(body: dict) -> dict:
     """Full-profile save from the dashboard's manual-edit fallback (draft only)."""

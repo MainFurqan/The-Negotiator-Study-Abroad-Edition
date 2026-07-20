@@ -32,10 +32,7 @@ from pathlib import Path
 import httpx
 from fastapi import APIRouter, HTTPException
 
-<<<<<<< HEAD
-=======
 from . import fx
->>>>>>> 7bd7dbf (improvements by Meer)
 from .config import get_vertical
 from .db import get_conn
 
@@ -48,13 +45,6 @@ ELEVENLABS_OUTBOUND_URL = "https://api.elevenlabs.io/v1/convai/twilio/outbound-c
 # ---- helpers ----------------------------------------------------------------
 
 def _frozen_profile(conn) -> dict:
-<<<<<<< HEAD
-    row = conn.execute(
-        "SELECT * FROM student_profile WHERE confirmed = 1 ORDER BY id DESC LIMIT 1"
-    ).fetchone()
-    if not row:
-        raise HTTPException(409, "no frozen profile — confirm the student profile before any call")
-=======
     """The frozen profile injected into the call — for the ACTIVE student.
 
     Multi-student: dial for the currently selected student. If that student's
@@ -78,7 +68,6 @@ def _frozen_profile(conn) -> dict:
         raise HTTPException(
             409, "no frozen profile for the active student — confirm the student profile before any call"
         )
->>>>>>> 7bd7dbf (improvements by Meer)
     return json.loads(row["profile_json"])
 
 
@@ -149,8 +138,6 @@ def _quotes_for(conn, call_id: int) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-<<<<<<< HEAD
-=======
 def _red_flags_for(conn, call_id: int) -> list[dict]:
     """Read-only: flags already recorded for a call, annotated with config severity.
 
@@ -175,7 +162,6 @@ def _red_flags_for(conn, call_id: int) -> list[dict]:
     ]
 
 
->>>>>>> 7bd7dbf (improvements by Meer)
 def effective_rows(quotes: list[dict]) -> list[dict]:
     """Latest figure wins per line item — revisions supersede the original row.
 
@@ -208,8 +194,6 @@ def _fill(line: str, **values) -> str:
     return line
 
 
-<<<<<<< HEAD
-=======
 def _agencies(v: dict) -> list[dict]:
     """The fixed agencies the caller page offers (config-driven). Empty if none."""
     return ((v.get("agencies") or {}).get("list")) or []
@@ -232,7 +216,6 @@ def _resolve_agency(v: dict, agency_id: str) -> dict:
     return agency
 
 
->>>>>>> 7bd7dbf (improvements by Meer)
 # ---- agent tool webhooks ----------------------------------------------------
 
 @router.post("/tools/log_quote")
@@ -454,12 +437,6 @@ def create_call(body: dict) -> dict:
     an open call to attach to while the Caller is exercised in dashboard chat.
     """
     v = get_vertical()
-<<<<<<< HEAD
-    name = (body.get("consultancy_name") or "").strip()
-    if not name:
-        raise HTTPException(422, "consultancy_name is required")
-    persona_id = body.get("persona_id")
-=======
     # Preferred path (Change 5): the caller page sends an agency_id from the fixed
     # dropdown. The agency supplies the display name + mapped persona; the dial
     # target is ALWAYS VERIFIED_TARGET_NUMBER regardless (enforced below).
@@ -473,7 +450,6 @@ def create_call(body: dict) -> dict:
         persona_id = body.get("persona_id")
     if not name:
         raise HTTPException(422, "consultancy_name or agency_id is required")
->>>>>>> 7bd7dbf (improvements by Meer)
     if persona_id and persona_id not in {p["id"] for p in v["personas"]}:
         raise HTTPException(422, f"unknown persona_id '{persona_id}'")
 
@@ -534,10 +510,6 @@ def create_call(body: dict) -> dict:
     return {"ok": True, "call_id": call_id, "dialed": True, "conversation_id": conversation_id}
 
 
-<<<<<<< HEAD
-# ---- dashboard --------------------------------------------------------------
-
-=======
 @router.post("/api/calls/{call_id}/cancel")
 def cancel_call(call_id: int, body: dict | None = None) -> dict:
     """Close an open call from the dashboard (declined / no-answer / cancelled).
@@ -588,7 +560,7 @@ def agencies() -> dict:
         })
     return {"agencies": out}
 
->>>>>>> 7bd7dbf (improvements by Meer)
+
 @router.get("/api/calls")
 def list_calls() -> dict:
     """Everything the live quote board needs, newest call first."""
@@ -598,14 +570,6 @@ def list_calls() -> dict:
         for c in calls:
             c.pop("transcript_json", None)
             c["quotes"] = _quotes_for(conn, c["id"])
-<<<<<<< HEAD
-    return {
-        "currency": {
-            "symbol": v["currency"]["symbol"],
-            "quote_currency": v["currency"]["quote_currency"],
-            "secondary": v["currency"]["report_currency_secondary"],
-            "rate": v["currency"]["gbp_to_pkr_rate"],
-=======
             c["red_flags"] = _red_flags_for(conn, c["id"])
     cur = v["currency"]
     fx_info = fx.get_rate(cur["quote_currency"], cur["report_currency_secondary"], cur["gbp_to_pkr_rate"])
@@ -618,7 +582,6 @@ def list_calls() -> dict:
             "rate_live": fx_info["live"],
             "rate_source": fx_info["source"],
             "rate_fetched_at": fx_info["fetched_at"],
->>>>>>> 7bd7dbf (improvements by Meer)
         },
         "quote_items": v["quote_items"],
         "calls": calls,
