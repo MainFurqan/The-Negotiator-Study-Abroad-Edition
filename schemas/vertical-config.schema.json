@@ -124,6 +124,33 @@
         }
       }
     },
+<<<<<<< HEAD
+=======
+    "agencies": {
+      "type": "object",
+      "description": "Optional. The fixed agencies the caller page offers. Each maps to one persona; the backend always dials VERIFIED_TARGET_NUMBER regardless of the agency shown.",
+      "required": ["list"],
+      "properties": {
+        "list": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "display_name", "persona_id"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+              "display_name": { "type": "string" },
+              "tagline": { "type": "string" },
+              "country": { "type": "string" },
+              "initials": { "type": "string" },
+              "accent": { "type": "string" },
+              "persona_id": { "type": "string", "pattern": "^[a-z0-9_]+$" }
+            }
+          }
+        }
+      }
+    },
+>>>>>>> 7bd7dbf (improvements by Meer)
     "call_list": {
       "type": "object",
       "required": ["search_query", "target_count"],

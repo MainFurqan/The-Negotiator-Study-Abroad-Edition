@@ -11,6 +11,10 @@ services:
     env_file: ../.env
     environment:
       NEGOTIATOR_DB: /data/negotiator.db
+<<<<<<< HEAD
+=======
+      NEGOTIATOR_FX_CACHE: /data/fx_cache.json
+>>>>>>> 7bd7dbf (improvements by Meer)
     volumes:
       - dbdata:/data
     restart: unless-stopped

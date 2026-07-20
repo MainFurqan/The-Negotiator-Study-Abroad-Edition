@@ -11,6 +11,10 @@ CREATE TABLE IF NOT EXISTS student_profile (
     id INTEGER PRIMARY KEY,
     profile_json TEXT NOT NULL,        -- frozen StudentProfile, reused verbatim
     confirmed INTEGER NOT NULL DEFAULT 0,
+<<<<<<< HEAD
+=======
+    active INTEGER NOT NULL DEFAULT 0,  -- 1 = the current working student (multi-student)
+>>>>>>> 7bd7dbf (improvements by Meer)
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -64,3 +68,13 @@ def init_db() -> None:
             conn.execute("ALTER TABLE quotes ADD COLUMN revised_from REAL")
         except sqlite3.OperationalError:
             pass
+<<<<<<< HEAD
+=======
+        # multi-student (UX restructure): `active` marks which stored profile is the
+        # current working student. At most one row is active=1; legacy dbs have none,
+        # in which case "current" falls back to the most recent row (back-compat).
+        try:
+            conn.execute("ALTER TABLE student_profile ADD COLUMN active INTEGER NOT NULL DEFAULT 0")
+        except sqlite3.OperationalError:
+            pass
+>>>>>>> 7bd7dbf (improvements by Meer)

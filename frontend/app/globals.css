@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+<<<<<<< HEAD
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -23,4 +24,207 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+=======
+/* =========================================================================
+   The Negotiator — design tokens
+   Dark-first. Light theme is opt-in via <html data-theme="light">.
+   All colours are HSL channels so Tailwind utilities can add opacity.
+   ========================================================================= */
+
+:root {
+  /* base surfaces (dark) */
+  --background: 240 10% 4%;         /* app canvas */
+  --surface: 240 8% 6%;             /* cards */
+  --surface-2: 240 7% 9%;           /* elevated / hover */
+  --surface-3: 240 6% 12%;          /* inputs, chips */
+  --border: 240 6% 16%;
+  --border-strong: 240 6% 24%;
+
+  /* text */
+  --foreground: 0 0% 98%;
+  --muted: 240 5% 65%;
+  --muted-2: 240 4% 46%;
+
+  /* brand — indigo→violet, the accent that carries the product */
+  --brand: 245 80% 62%;
+  --brand-2: 268 84% 64%;
+  --brand-foreground: 0 0% 100%;
+  --ring: 245 80% 62%;
+
+  /* semantic */
+  --success: 152 62% 45%;
+  --success-soft: 152 45% 14%;
+  --warning: 38 92% 55%;
+  --warning-soft: 38 70% 14%;
+  --danger: 0 74% 58%;
+  --danger-soft: 0 60% 15%;
+  --info: 205 85% 58%;
+  --info-soft: 205 60% 14%;
+
+  --radius: 0.85rem;
+  --shadow-color: 240 30% 2%;
+}
+
+:root[data-theme="light"] {
+  --background: 240 20% 99%;
+  --surface: 0 0% 100%;
+  --surface-2: 240 20% 97%;
+  --surface-3: 240 20% 94%;
+  --border: 240 15% 90%;
+  --border-strong: 240 12% 82%;
+
+  --foreground: 240 15% 9%;
+  --muted: 240 6% 40%;
+  --muted-2: 240 5% 55%;
+
+  --brand: 245 78% 56%;
+  --brand-2: 268 80% 58%;
+  --brand-foreground: 0 0% 100%;
+  --ring: 245 78% 56%;
+
+  --success: 152 60% 38%;
+  --success-soft: 152 55% 92%;
+  --warning: 32 90% 45%;
+  --warning-soft: 38 90% 92%;
+  --danger: 0 72% 50%;
+  --danger-soft: 0 80% 95%;
+  --info: 205 80% 45%;
+  --info-soft: 205 80% 93%;
+
+  --shadow-color: 240 30% 60%;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-surface: hsl(var(--surface));
+  --color-surface-2: hsl(var(--surface-2));
+  --color-surface-3: hsl(var(--surface-3));
+  --color-border: hsl(var(--border));
+  --color-border-strong: hsl(var(--border-strong));
+
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-2: hsl(var(--muted-2));
+
+  --color-brand: hsl(var(--brand));
+  --color-brand-2: hsl(var(--brand-2));
+  --color-brand-foreground: hsl(var(--brand-foreground));
+  --color-ring: hsl(var(--ring));
+
+  --color-success: hsl(var(--success));
+  --color-success-soft: hsl(var(--success-soft));
+  --color-warning: hsl(var(--warning));
+  --color-warning-soft: hsl(var(--warning-soft));
+  --color-danger: hsl(var(--danger));
+  --color-danger-soft: hsl(var(--danger-soft));
+  --color-info: hsl(var(--info));
+  --color-info-soft: hsl(var(--info-soft));
+
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 0.35rem);
+  --radius-2xl: calc(var(--radius) + 0.75rem);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-gradient: gradient-pan 8s ease infinite;
+  --animate-fade-up: fade-up 0.5s ease both;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  70% { transform: scale(1.6); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes gradient-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  color-scheme: dark;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ambient brand glow used behind hero sections */
+.bg-grid {
+  background-image:
+    linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+.text-gradient {
+  background: linear-gradient(120deg, hsl(var(--foreground)), hsl(var(--brand-2)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-gradient {
+  background: linear-gradient(120deg, hsl(var(--brand)), hsl(var(--brand-2)));
+}
+
+/* Glass surface used by nav + floating cards */
+.glass {
+  background: hsl(var(--surface) / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border-strong));
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-2)); background-clip: content-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Print styles for the report */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+>>>>>>> 7bd7dbf (improvements by Meer)
 }

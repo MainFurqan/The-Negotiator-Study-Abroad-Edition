@@ -8,12 +8,20 @@ against schemas/student-profile.schema.json and freezes it. A frozen profile is
 never edited again — it is injected verbatim into every outbound call (Phase 4).
 """
 import json
+<<<<<<< HEAD
+=======
+import os
+>>>>>>> 7bd7dbf (improvements by Meer)
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from jsonschema import Draft202012Validator
 
+<<<<<<< HEAD
+=======
+from .config import get_vertical
+>>>>>>> 7bd7dbf (improvements by Meer)
 from .db import get_conn
 
 router = APIRouter()
@@ -22,16 +30,79 @@ SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schemas" / "student-profile
 _validator = Draft202012Validator(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
 
 AGENT_FIELDS = {
+<<<<<<< HEAD
     "full_name", "home_city", "last_qualification", "english_test",
+=======
+    "full_name", "home_city", "gender", "last_qualification", "english_test",
+>>>>>>> 7bd7dbf (improvements by Meer)
     "target", "budget", "documents_provided", "notes",
 }
 
 
+<<<<<<< HEAD
 def _latest(conn) -> dict | None:
     row = conn.execute("SELECT * FROM student_profile ORDER BY id DESC LIMIT 1").fetchone()
     return dict(row) if row else None
 
 
+=======
+def resolve_estimator_voice(gender: str | None) -> dict:
+    """Pick the Estimator agent's voice from the student's gender.
+
+    Rule (judged backend requirement): a female student hears the female voice;
+    every other value (male / unspecified / unknown) hears the male voice. Voice
+    labels come from config; the real ElevenLabs voice_id comes from env so it is
+    never committed. The returned `overrides` block is exactly what a client
+    passes to ElevenLabs conversation-initiation to start the estimator in that
+    voice.
+    """
+    resolved = "female" if (gender or "").strip().lower() == "female" else "male"
+    voices = (get_vertical().get("estimator") or {}).get("voices") or {}
+    conf = voices.get(resolved, {})
+    env_key = "ELEVENLABS_VOICE_ID_FEMALE" if resolved == "female" else "ELEVENLABS_VOICE_ID_MALE"
+    voice_id = os.environ.get(env_key) or None
+    agent_id = os.environ.get("ELEVENLABS_AGENT_ID_ESTIMATOR") or None
+    overrides = {"conversation_config_override": {"tts": {"voice_id": voice_id}}} if voice_id else None
+    return {
+        "requested_gender": gender,
+        "resolved_gender": resolved,
+        "voice": {
+            "voice_id": voice_id,
+            "label": conf.get("label"),
+            "description": conf.get("description"),
+            "configured": voice_id is not None,
+        },
+        "agent_id": agent_id,
+        "overrides": overrides,
+    }
+
+
+def _current(conn) -> dict | None:
+    """The current working student's row.
+
+    Prefers the row flagged active=1 (multi-student selection). Legacy dbs have no
+    active row, so it falls back to the most recent row — identical to the old
+    single-profile behaviour, keeping every existing caller working unchanged.
+    """
+    row = conn.execute(
+        "SELECT * FROM student_profile WHERE active = 1 ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    if row is None:
+        row = conn.execute("SELECT * FROM student_profile ORDER BY id DESC LIMIT 1").fetchone()
+    return dict(row) if row else None
+
+
+# Backwards-compatible alias: some call sites historically used _latest().
+_latest = _current
+
+
+def _activate(conn, row_id: int) -> None:
+    """Make exactly one row the active working student."""
+    conn.execute("UPDATE student_profile SET active = 0 WHERE active = 1")
+    conn.execute("UPDATE student_profile SET active = 1 WHERE id = ?", (row_id,))
+
+
+>>>>>>> 7bd7dbf (improvements by Meer)
 def _profile_of(row: dict) -> dict:
     return json.loads(row["profile_json"])
 
@@ -43,6 +114,10 @@ def _save(conn, row_id: int | None, profile: dict, confirmed: bool = False) -> d
             ("{}", 0),
         )
         row_id = cur.lastrowid
+<<<<<<< HEAD
+=======
+        _activate(conn, row_id)  # a new draft becomes the current working student
+>>>>>>> 7bd7dbf (improvements by Meer)
     profile["profile_id"] = row_id
     conn.execute(
         "UPDATE student_profile SET profile_json = ?, confirmed = ? WHERE id = ?",
@@ -127,12 +202,87 @@ async def intake_document(file: UploadFile = File(...), doc_type: str = Form(...
 @router.get("/api/profile")
 def get_profile() -> dict:
     with get_conn() as conn:
+<<<<<<< HEAD
         row = _latest(conn)
+=======
+        row = _current(conn)
+>>>>>>> 7bd7dbf (improvements by Meer)
     if not row:
         return {"profile": None}
     return {"profile": _profile_of(row), "confirmed": bool(row["confirmed"])}
 
 
+<<<<<<< HEAD
+=======
+def _summary(row: dict) -> dict:
+    """Compact card for the intake student picker — never leaks unrelated fields."""
+    p = _profile_of(row)
+    q = p.get("last_qualification") or {}
+    t = p.get("target") or {}
+    return {
+        "profile_id": row["id"],
+        "active": bool(row["active"]),
+        "confirmed": bool(row["confirmed"]),
+        "full_name": p.get("full_name"),
+        "home_city": p.get("home_city"),
+        "course": t.get("course"),
+        "level": q.get("level"),
+        "intake": t.get("intake"),
+        "frozen_at": p.get("frozen_at"),
+        "created_at": row.get("created_at"),
+    }
+
+
+@router.get("/api/profiles")
+def list_profiles() -> dict:
+    """All stored students for the intake picker, newest first. Empty drafts (no
+    name yet) are hidden so a fresh 'Add new student' click doesn't clutter the list."""
+    with get_conn() as conn:
+        rows = [dict(r) for r in conn.execute(
+            "SELECT * FROM student_profile ORDER BY id DESC"
+        ).fetchall()]
+    out = []
+    for r in rows:
+        s = _summary(r)
+        if not s["full_name"] and not s["confirmed"] and not s["active"]:
+            continue  # skip abandoned blank drafts
+        out.append(s)
+    return {"profiles": out}
+
+
+@router.post("/api/profiles/{profile_id}/activate")
+def activate_profile(profile_id: int) -> dict:
+    """Select a stored student as the current working profile.
+
+    Only moves the active pointer — it never edits or unfreezes any row, so the
+    freeze/inject contract (confirmed profiles stay immutable and are injected
+    verbatim into calls) is fully preserved.
+    """
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM student_profile WHERE id = ?", (profile_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, f"no profile with id {profile_id}")
+        _activate(conn, profile_id)
+        row = conn.execute("SELECT * FROM student_profile WHERE id = ?", (profile_id,)).fetchone()
+    return {"ok": True, "profile": _profile_of(dict(row)), "confirmed": bool(row["confirmed"])}
+
+
+@router.get("/api/estimator/session")
+def estimator_session(gender: str | None = None) -> dict:
+    """Voice config for launching the Estimator agent.
+
+    If `gender` is supplied (the intake UI passes the live selection) it wins;
+    otherwise the latest saved profile's gender is used. Returns the chosen voice
+    and the ready-to-use ElevenLabs conversation-initiation overrides.
+    """
+    if gender is None:
+        with get_conn() as conn:
+            row = _latest(conn)
+        gender = (_profile_of(row).get("gender") if row else None)
+    return {"ok": True, **resolve_estimator_voice(gender)}
+
+
+>>>>>>> 7bd7dbf (improvements by Meer)
 @router.put("/api/profile")
 def put_profile(body: dict) -> dict:
     """Full-profile save from the dashboard's manual-edit fallback (draft only)."""

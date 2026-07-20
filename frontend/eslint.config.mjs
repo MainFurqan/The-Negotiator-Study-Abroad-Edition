@@ -13,6 +13,18 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+<<<<<<< HEAD
+=======
+  {
+    rules: {
+      // We intentionally use effects to fetch on mount, poll live data, and
+      // apply the persisted theme — the canonical "sync with an external
+      // system" use of effects. This experimental rule false-positives on
+      // exactly that pattern, so it is disabled project-wide.
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
+>>>>>>> 7bd7dbf (improvements by Meer)
 ]);
 
 export default eslintConfig;

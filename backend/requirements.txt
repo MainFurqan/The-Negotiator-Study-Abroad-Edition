@@ -7,3 +7,7 @@ openai
 pdfplumber
 jsonschema
 python-multipart
+<<<<<<< HEAD
+=======
+reportlab
+>>>>>>> 7bd7dbf (improvements by Meer)

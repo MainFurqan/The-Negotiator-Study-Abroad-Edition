@@ -32,6 +32,10 @@ from pathlib import Path
 import httpx
 from fastapi import APIRouter, HTTPException
 
+<<<<<<< HEAD
+=======
+from . import fx
+>>>>>>> 7bd7dbf (improvements by Meer)
 from .config import get_vertical
 from .db import get_conn
 
@@ -44,11 +48,37 @@ ELEVENLABS_OUTBOUND_URL = "https://api.elevenlabs.io/v1/convai/twilio/outbound-c
 # ---- helpers ----------------------------------------------------------------
 
 def _frozen_profile(conn) -> dict:
+<<<<<<< HEAD
     row = conn.execute(
         "SELECT * FROM student_profile WHERE confirmed = 1 ORDER BY id DESC LIMIT 1"
     ).fetchone()
     if not row:
         raise HTTPException(409, "no frozen profile — confirm the student profile before any call")
+=======
+    """The frozen profile injected into the call — for the ACTIVE student.
+
+    Multi-student: dial for the currently selected student. If that student's
+    profile isn't frozen we must NOT silently fall back to a different student's
+    frozen profile (that would inject the wrong person) — we raise instead. Only
+    when no active pointer exists at all (legacy single-profile dbs) do we fall
+    back to the latest confirmed row, preserving the original behaviour.
+    """
+    row = conn.execute(
+        "SELECT * FROM student_profile WHERE active = 1 AND confirmed = 1 ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    if row is None:
+        has_active = conn.execute(
+            "SELECT 1 FROM student_profile WHERE active = 1 LIMIT 1"
+        ).fetchone()
+        if not has_active:  # legacy db with no active pointer set
+            row = conn.execute(
+                "SELECT * FROM student_profile WHERE confirmed = 1 ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+    if not row:
+        raise HTTPException(
+            409, "no frozen profile for the active student — confirm the student profile before any call"
+        )
+>>>>>>> 7bd7dbf (improvements by Meer)
     return json.loads(row["profile_json"])
 
 
@@ -119,6 +149,33 @@ def _quotes_for(conn, call_id: int) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+<<<<<<< HEAD
+=======
+def _red_flags_for(conn, call_id: int) -> list[dict]:
+    """Read-only: flags already recorded for a call, annotated with config severity.
+
+    Used by the live board so 'red flags detected' can surface mid-call. This is a
+    dashboard read — it does not alter how flags are raised (that stays in
+    /tools/red_flag_check)."""
+    rules = {r["id"]: r for r in get_vertical()["red_flag_rules"]}
+    rows = conn.execute(
+        "SELECT rule_id, detail, flagged_at FROM red_flags WHERE call_id = ? ORDER BY id",
+        (call_id,),
+    ).fetchall()
+    return [
+        {
+            "rule_id": r["rule_id"],
+            "severity": rules[r["rule_id"]]["severity"],
+            "description": rules[r["rule_id"]]["description"],
+            "detail": r["detail"],
+            "flagged_at": r["flagged_at"],
+        }
+        for r in rows
+        if r["rule_id"] in rules
+    ]
+
+
+>>>>>>> 7bd7dbf (improvements by Meer)
 def effective_rows(quotes: list[dict]) -> list[dict]:
     """Latest figure wins per line item — revisions supersede the original row.
 
@@ -151,6 +208,31 @@ def _fill(line: str, **values) -> str:
     return line
 
 
+<<<<<<< HEAD
+=======
+def _agencies(v: dict) -> list[dict]:
+    """The fixed agencies the caller page offers (config-driven). Empty if none."""
+    return ((v.get("agencies") or {}).get("list")) or []
+
+
+def _resolve_agency(v: dict, agency_id: str) -> dict:
+    """Look up an agency by id and confirm its mapped persona exists in config.
+
+    Returns the agency dict; raises 422 if unknown. This is how a selected agency
+    becomes a call's display identity + simulated persona while every real dial
+    still goes to VERIFIED_TARGET_NUMBER (the mapping never changes the dial target).
+    """
+    agency = next((a for a in _agencies(v) if a["id"] == agency_id), None)
+    if not agency:
+        known = [a["id"] for a in _agencies(v)]
+        raise HTTPException(422, f"unknown agency_id '{agency_id}' — known agencies: {known}")
+    persona_id = agency.get("persona_id")
+    if persona_id and persona_id not in {p["id"] for p in v["personas"]}:
+        raise HTTPException(500, f"agency '{agency_id}' maps to unknown persona '{persona_id}' — fix config")
+    return agency
+
+
+>>>>>>> 7bd7dbf (improvements by Meer)
 # ---- agent tool webhooks ----------------------------------------------------
 
 @router.post("/tools/log_quote")
@@ -372,10 +454,26 @@ def create_call(body: dict) -> dict:
     an open call to attach to while the Caller is exercised in dashboard chat.
     """
     v = get_vertical()
+<<<<<<< HEAD
     name = (body.get("consultancy_name") or "").strip()
     if not name:
         raise HTTPException(422, "consultancy_name is required")
     persona_id = body.get("persona_id")
+=======
+    # Preferred path (Change 5): the caller page sends an agency_id from the fixed
+    # dropdown. The agency supplies the display name + mapped persona; the dial
+    # target is ALWAYS VERIFIED_TARGET_NUMBER regardless (enforced below).
+    agency_id = body.get("agency_id")
+    if agency_id:
+        agency = _resolve_agency(v, agency_id)
+        name = agency["display_name"]
+        persona_id = agency.get("persona_id")
+    else:
+        name = (body.get("consultancy_name") or "").strip()
+        persona_id = body.get("persona_id")
+    if not name:
+        raise HTTPException(422, "consultancy_name or agency_id is required")
+>>>>>>> 7bd7dbf (improvements by Meer)
     if persona_id and persona_id not in {p["id"] for p in v["personas"]}:
         raise HTTPException(422, f"unknown persona_id '{persona_id}'")
 
@@ -436,8 +534,61 @@ def create_call(body: dict) -> dict:
     return {"ok": True, "call_id": call_id, "dialed": True, "conversation_id": conversation_id}
 
 
+<<<<<<< HEAD
 # ---- dashboard --------------------------------------------------------------
 
+=======
+@router.post("/api/calls/{call_id}/cancel")
+def cancel_call(call_id: int, body: dict | None = None) -> dict:
+    """Close an open call from the dashboard (declined / no-answer / cancelled).
+
+    Lets the caller page free the single-open-call slot so the user can pick
+    another agency and try again. Structured-outcome invariant is preserved: the
+    call is closed as a documented_decline with a reason. Already-ended calls are
+    left untouched.
+    """
+    reason = ((body or {}).get("reason") or "cancelled from dashboard").strip()
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM calls WHERE id = ?", (call_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, f"no call with id {call_id}")
+        if row["outcome"]:
+            return {"ok": True, "call_id": call_id, "outcome": row["outcome"], "note": "already ended"}
+        conn.execute(
+            "UPDATE calls SET outcome = 'documented_decline', outcome_detail = ? WHERE id = ?",
+            (reason, call_id),
+        )
+    return {"ok": True, "call_id": call_id, "outcome": "documented_decline", "detail": reason}
+
+
+# ---- dashboard --------------------------------------------------------------
+
+
+@router.get("/api/agencies")
+def agencies() -> dict:
+    """The fixed agencies the caller page offers (config-driven).
+
+    display_name + persona are what the UI shows and the call uses; the number
+    dialed is ALWAYS VERIFIED_TARGET_NUMBER — the agency never changes that.
+    """
+    v = get_vertical()
+    personas = {p["id"]: p for p in v["personas"]}
+    out = []
+    for a in _agencies(v):
+        p = personas.get(a.get("persona_id"), {})
+        out.append({
+            "id": a["id"],
+            "display_name": a["display_name"],
+            "tagline": a.get("tagline"),
+            "country": a.get("country"),
+            "initials": a.get("initials"),
+            "accent": a.get("accent"),
+            "persona_id": a.get("persona_id"),
+            "persona_name": p.get("name"),
+        })
+    return {"agencies": out}
+
+>>>>>>> 7bd7dbf (improvements by Meer)
 @router.get("/api/calls")
 def list_calls() -> dict:
     """Everything the live quote board needs, newest call first."""
@@ -447,12 +598,27 @@ def list_calls() -> dict:
         for c in calls:
             c.pop("transcript_json", None)
             c["quotes"] = _quotes_for(conn, c["id"])
+<<<<<<< HEAD
     return {
         "currency": {
             "symbol": v["currency"]["symbol"],
             "quote_currency": v["currency"]["quote_currency"],
             "secondary": v["currency"]["report_currency_secondary"],
             "rate": v["currency"]["gbp_to_pkr_rate"],
+=======
+            c["red_flags"] = _red_flags_for(conn, c["id"])
+    cur = v["currency"]
+    fx_info = fx.get_rate(cur["quote_currency"], cur["report_currency_secondary"], cur["gbp_to_pkr_rate"])
+    return {
+        "currency": {
+            "symbol": cur["symbol"],
+            "quote_currency": cur["quote_currency"],
+            "secondary": cur["report_currency_secondary"],
+            "rate": fx_info["rate"],
+            "rate_live": fx_info["live"],
+            "rate_source": fx_info["source"],
+            "rate_fetched_at": fx_info["fetched_at"],
+>>>>>>> 7bd7dbf (improvements by Meer)
         },
         "quote_items": v["quote_items"],
         "calls": calls,

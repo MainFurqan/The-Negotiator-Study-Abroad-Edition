@@ -16,6 +16,12 @@ out/
 *.db
 *.sqlite3
 
+<<<<<<< HEAD
+=======
+# FX rate cache (regenerated at runtime)
+fx_cache.json
+
+>>>>>>> 7bd7dbf (improvements by Meer)
 # Audio recordings (large binaries — keep out of git)
 data/recordings/
 *.mp3

@@ -71,3 +71,52 @@ negotiates fees down using cross-quote leverage, and outputs a ranked GBP+PKR re
   text-mode negotiation relay test (README "negotiation test loop"), then the golden calls.
 - Development COMPLETE. Next: manual agent config + golden calls + demo recording (Phases 7–8);
   no new code phases unless asked.
+<<<<<<< HEAD
+=======
+- Production polish pass (2026-07-20): full frontend redesign — dark-first design system
+  (`frontend/globals.css` tokens + `components/ui`, `components/shell`), landing `app/page.tsx`,
+  animated multi-step intake `app/intake/` (moved off `/`), showpiece live caller `app/board/`
+  (waveform/orb/stages/confidence/reconstructed transcript in `components/board`), analytics
+  report `app/report/` (Recharts + GBP/PKR switch + PDF/print) using Framer Motion + Recharts +
+  Lucide. New backend features (business logic untouched): gender→Estimator voice
+  (`GET /api/estimator/session`, schema `gender`, config `estimator.voices`, env
+  `ELEVENLABS_VOICE_ID_FEMALE/_MALE`); live FX `backend/app/fx.py` (cache + graceful fallback,
+  wired into report + board currency); PDF export `backend/app/report_pdf.py` +
+  `GET /api/report/pdf` (reportlab); additive `red_flags` on `GET /api/calls` for the live board.
+  `frontend` passes tsc + eslint + `next build`. Full docs in `docs/` (ARCHITECTURE, DEVELOPMENT,
+  API-REFERENCE, CONFIGURATION, INTEGRATIONS, DEPLOYMENT, TROUBLESHOOTING). Deploy unchanged model
+  (EC2 + Caddy + sslip.io); compose now persists the FX cache on the data volume.
+- UX restructure + real agency caller (2026-07-20): all business logic (negotiation/leverage/
+  red-flag/report-ranking/docparse/freeze-inject/honesty invariants) UNTOUCHED — verified by
+  `scripts/test_closer.py` ALL 17 PASS + `validate_config.py` green after the change.
+  (1) Landing `app/page.tsx`: single CTA "Start student intake" (removed "Open live caller").
+  (2) Floating gated flow bar: `lib/flow.ts` (gating derived from `/api/profile.confirmed` +
+  ended call in `/api/calls`) + `components/shell/flow-bar.tsx` (renders on /intake,/board,/report
+  only, NEVER on /); navbar page-links removed from `components/shell/top-nav.tsx`; mounted in
+  `app/layout.tsx`. Caller locked until a profile is frozen; Report locked until a call has ended;
+  locked clicks show a tooltip, completed steps stay clickable.
+  (3) Multi-student: additive `active` column on `student_profile` (db.py migration, at most one
+  active; legacy dbs fall back to latest row); `GET /api/profiles`, `POST /api/profiles/{id}/activate`
+  (moves the active pointer only — freeze/inject contract intact); `_current`/`_activate` in
+  intake.py (aliased `_latest`); `_frozen_profile` in calls.py now injects the ACTIVE student's
+  frozen profile (never silently falls back to a different student). Intake `app/intake/` gains a
+  student picker (`components/intake/student-picker.tsx`) + "Add new student" (reuses the 8-step
+  wizard via `/api/profile/reset`).
+  (4) Report `app/report/`: new `components/report/agencies-contacted.tsx` — side-by-side
+  comparison (fees/deposit/total GBP+PKR/red flags/outcome) above the existing recommendation;
+  ranking logic unchanged.
+  (5) Real agency caller (MAIN): 3 fixed agencies in `config/uk-llb.json` `agencies.list`
+  (REALISTIC FICTIONAL brands — Britannia Study Abroad→commission_pusher, Albion Education UK→
+  fee_hider, Crownbridge Visa Services→stonewaller), schema updated (`schemas/vertical-config.schema.json`
+  optional `agencies`). `POST /api/calls` accepts `agency_id` (resolves name+persona; STILL always
+  dials VERIFIED_TARGET_NUMBER); new `GET /api/agencies` + `POST /api/calls/{id}/cancel`
+  (declined/no-answer → try another agency). Caller page `components/board/agency-caller.tsx`:
+  agency dropdown + full lifecycle (dialing→ringing→forwarded→connected→declined/ended), graceful
+  dry-run fallback on missing dial env; drives the existing waveform/orb/stages/transcript from the
+  real selected-agency call via polling. Old `start-call.tsx` (persona/call_list picker) removed.
+  `frontend` passes tsc + eslint + `next build`; all pages click-through verified in browser; demo
+  DB left intact (test rows cleaned up). New setup guide `docs/SETUP-GUIDE.md`; docs refreshed
+  (README, ARCHITECTURE, DEVELOPMENT, API-REFERENCE, CONFIGURATION, INTEGRATIONS, TROUBLESHOOTING).
+  MANUAL remaining unchanged from Phase 5 (ElevenLabs Caller agent config + phone id in .env +
+  golden calls); no ElevenLabs/Twilio setup changed by this restructure.
+>>>>>>> 7bd7dbf (improvements by Meer)

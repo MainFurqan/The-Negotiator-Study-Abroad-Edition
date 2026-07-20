@@ -10,6 +10,14 @@
     "profile_id": { "type": ["integer", "null"], "description": "DB row id; null before first save" },
     "full_name": { "type": "string", "minLength": 1 },
     "home_city": { "type": "string", "description": "City in Pakistan, e.g. Lahore" },
+<<<<<<< HEAD
+=======
+    "gender": {
+      "type": ["string", "null"],
+      "enum": ["female", "male", "unspecified", null],
+      "description": "Optional. Selects the Estimator agent voice (female voice for female students, otherwise male). Never used to invent or infer any other field."
+    },
+>>>>>>> 7bd7dbf (improvements by Meer)
     "last_qualification": {
       "type": "object",
       "required": ["level", "grades"],
